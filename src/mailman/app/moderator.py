@@ -34,7 +34,6 @@ import logging
 
 from email.utils import formataddr, formatdate, getaddresses, make_msgid
 from mailman.app.membership import add_member, delete_member
-from mailman.app.notifications import send_admin_subscription_notice
 from mailman.config import config
 from mailman.core.i18n import _
 from mailman.email.message import UserNotification
@@ -257,10 +256,6 @@ def handle_subscription(mlist, id, action, comment=None):
             # The address got subscribed in some other way after the original
             # request was made and accepted.
             pass
-        else:
-            if mlist.admin_notify_mchanges:
-                send_admin_subscription_notice(
-                    mlist, email, display_name, language)
         slog.info('%s: new %s, %s %s', mlist.fqdn_listname,
                   delivery_mode, formataddr((display_name, email)),
                   'via admin approval')

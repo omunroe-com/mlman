@@ -12,6 +12,12 @@ Here is a history of user visible changes to Mailman.
 =====
 (2015-XX-XX)
 
+Bugs
+----
+ * When the mailing list's `admin_notify_mchanges` is True, the list owners
+   now get the subscription notification.  (Closes: #1)
+
+
 3.0.0 -- "Show Don't Tell"
 ==========================
 (2015-04-28)

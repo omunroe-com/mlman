@@ -26,10 +26,12 @@ import unittest
 
 from mailman.app.lifecycle import create_list
 from mailman.interfaces.mailinglist import SubscriptionPolicy
+from mailman.interfaces.member import MemberRole
 from mailman.interfaces.pending import IPendings
 from mailman.interfaces.registrar import IRegistrar
 from mailman.interfaces.subscriptions import TokenOwner
 from mailman.interfaces.usermanager import IUserManager
+from mailman.testing.helpers import get_queue_messages
 from mailman.testing.layers import ConfigLayer
 from mailman.utilities.datetime import now
 from zope.component import getUtility
@@ -234,3 +236,41 @@ class TestRegistrar(unittest.TestCase):
         self._registrar.discard(token)
         # Trying to confirm the token now results in an exception.
         self.assertRaises(LookupError, self._registrar.confirm, token)
+
+    def test_admin_notify_mchanges(self):
+        # When a user gets subscribed via the subscription policy workflow,
+        # the list administrators get an email notification.
+        self._mlist.subscription_policy = SubscriptionPolicy.open
+        self._mlist.admin_notify_mchanges = True
+        self._mlist.send_welcome_message = False
+        token, token_owner, member = self._registrar.register(
+            self._anne, pre_verified=True)
+        # Anne is now a member.
+        self.assertEqual(member.address.email, 'anne@example.com')
+        # And there's a notification email waiting for Bart.
+        items = get_queue_messages('virgin')
+        self.assertEqual(len(items), 1)
+        message = items[0].msg
+        self.assertEqual(message['To'], 'ant-owner@example.com')
+        self.assertEqual(message['Subject'], 'Ant subscription notification')
+        self.assertEqual(message.get_payload(), """\
+anne@example.com has been successfully subscribed to Ant.""")
+
+    def test_no_admin_notify_mchanges(self):
+        # Even when a user gets subscribed via the subscription policy
+        # workflow, the list administrators won't get an email notification if
+        # they don't want one.
+        self._mlist.subscription_policy = SubscriptionPolicy.open
+        self._mlist.admin_notify_mchanges = False
+        self._mlist.send_welcome_message = False
+        # Bart is an administrator of the mailing list.
+        bart = getUtility(IUserManager).create_address(
+            'bart@example.com', 'Bart Person')
+        self._mlist.subscribe(bart, MemberRole.owner)
+        token, token_owner, member = self._registrar.register(
+            self._anne, pre_verified=True)
+        # Anne is now a member.
+        self.assertEqual(member.address.email, 'anne@example.com')
+        # There's no notification email waiting for Bart.
+        items = get_queue_messages('virgin')
+        self.assertEqual(len(items), 0)
