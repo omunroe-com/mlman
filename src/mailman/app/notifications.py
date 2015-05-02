@@ -123,7 +123,7 @@ def send_goodbye_message(mlist, address, language):
 
 
 
-def send_admin_subscription_notice(mlist, address, display_name, language):
+def send_admin_subscription_notice(mlist, address, display_name):
     """Send the list administrators a subscription notice.
 
     :param mlist: The mailing list.
@@ -132,8 +132,6 @@ def send_admin_subscription_notice(mlist, address, display_name, language):
     :type address: string
     :param display_name: The name of the subscriber.
     :type display_name: string
-    :param language: The language of the address's display name.
-    :type language: string
     """
     with _.using(mlist.preferred_language.code):
         subject = _('$mlist.display_name subscription notification')

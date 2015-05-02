@@ -26,13 +26,16 @@ __all__ = [
 
 from email.utils import formataddr
 from mailman.app.notifications import (
-    send_goodbye_message, send_welcome_message)
+    send_admin_subscription_notice, send_goodbye_message,
+    send_welcome_message)
 from mailman.core.i18n import _
 from mailman.email.message import OwnerNotification
+from mailman.interfaces.address import IAddress
 from mailman.interfaces.bans import IBanManager
 from mailman.interfaces.member import (
     AlreadySubscribedError, MemberRole, MembershipIsBannedError,
     NotAMemberError, SubscriptionEvent)
+from mailman.interfaces.user import IUser
 from mailman.interfaces.usermanager import IUserManager
 from mailman.utilities.i18n import make
 from zope.component import getUtility
@@ -143,13 +146,23 @@ def delete_member(mlist, email, admin_notif=None, userack=None):
 def handle_SubscriptionEvent(event):
     if not isinstance(event, SubscriptionEvent):
         return
-    # Only send a notification message if the mailing list is configured to do
-    # so, and the member being added is a list member (as opposed to a
-    # moderator, non-member, or owner).
     member = event.member
+    # Only send notifications if a member (as opposed to a moderator,
+    # non-member, or owner) is being subscribed.
     if member.role is not MemberRole.member:
         return
     mlist = member.mailing_list
-    if not mlist.send_welcome_message:
-        return
-    send_welcome_message(mlist, member, member.preferred_language)
+    # Maybe send the list administrators a notification.
+    if mlist.admin_notify_mchanges:
+        subscriber = member.subscriber
+        if IAddress.providedBy(subscriber):
+            address = subscriber.email
+            display_name = subscriber.display_name
+        else:
+            assert IUser.providedBy(subscriber)
+            address = subscriber.preferred_address.email
+            display_name = subscriber.display_name
+        send_admin_subscription_notice(mlist, address, display_name)
+    # Maybe send a welcome message to the new member.
+    if mlist.send_welcome_message:
+        send_welcome_message(mlist, member, member.preferred_language)
