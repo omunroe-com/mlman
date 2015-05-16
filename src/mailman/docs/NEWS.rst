@@ -18,7 +18,7 @@ Bugs
    now get the subscription notification.  (Closes: #1)
  * When `pip` installing Mailman into `/usr/local`, the `master` script is
    searched for relative to several landmark locations.  Originally given by
-   Sambuddha Basu, adapted by Barry Warsaw. (Closes: #2)
+   Sambuddha Basu, adapted by Barry Warsaw. (Closes: #3)
 
 
 3.0.0 -- "Show Don't Tell"
