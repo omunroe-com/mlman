@@ -15,6 +15,7 @@ You can also get all the values for a particular section.
     default_language: en
     email_commands_max_lines: 10
     filtered_messages_are_preservable: no
+    html_to_plain_text_command: /usr/bin/lynx -dump $filename
     http_etag: ...
     layout: testing
     noreply_address: noreply

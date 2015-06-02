@@ -19,6 +19,10 @@ Bugs
  * When `pip` installing Mailman into `/usr/local`, the `master` script is
    searched for relative to several landmark locations.  Originally given by
    Sambuddha Basu, adapted by Barry Warsaw. (Closes: #3)
+ * Fix the traceback that occurred when trying to convert a `text/html`
+   subpart to plaintext via the `mimedel` handler.  Now, a configuration
+   variable `[mailman]html_to_plain_text_command` in the `mailman.cfg` file
+   defines the command to use.  It defaults to `lynx`.  (Closes: #109)
 
 
 3.0.0 -- "Show Don't Tell"

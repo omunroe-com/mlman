@@ -208,7 +208,7 @@ Clean up.
 Conversion to plain text
 ========================
 
-Many mailing lists prohibit HTML email, and in fact, such email can be a
+Some mailing lists prohibit HTML email, and in fact, such email can be a
 phishing or spam vector.  However, many mail readers will send HTML email by
 default because users think it looks pretty.  One approach to handling this
 would be to filter out ``text/html`` parts and rely on
@@ -228,20 +228,8 @@ By default, Mailman sends the message through lynx, but since this program is
 not guaranteed to exist, we'll craft a simple, but stupid script to simulate
 the conversion process.  The script expects a single argument, which is the
 name of the file containing the message payload to filter.
+::
 
-    >>> import os, sys
-    >>> script_path = os.path.join(config.DATA_DIR, 'filter.py')
-    >>> fp = open(script_path, 'w')
-    >>> try:
-    ...     print("""\
-    ... import sys
-    ... print('Converted text/html to text/plain')
-    ... print('Filename:', sys.argv[1])
-    ... """, file=fp)
-    ... finally:
-    ...     fp.close()
-    >>> config.HTML_TO_PLAIN_TEXT_COMMAND = '%s %s %%(filename)s' % (
-    ...     sys.executable, script_path)
     >>> msg = message_from_string("""\
     ... From: aperson@example.com
     ... Content-Type: text/html
@@ -250,7 +238,10 @@ name of the file containing the message payload to filter.
     ... <html><head></head>
     ... <body></body></html>
     ... """)
-    >>> process(mlist, msg, {})
+
+    >>> from mailman.handlers.tests.test_mimedel import dummy_script
+    >>> with dummy_script():
+    ...     process(mlist, msg, {})
     >>> print(msg.as_string())
     From: aperson@example.com
     MIME-Version: 1.0
@@ -269,6 +260,7 @@ Similarly, if after filtering a multipart section ends up empty, then the
 entire multipart is discarded.  For example, here's a message where an inner
 ``multipart/mixed`` contains two jpeg subparts.  Both jpegs are filtered out,
 so the entire inner ``multipart/mixed`` is discarded.
+::
 
     >>> msg = message_from_string("""\
     ... From: aperson@example.com
@@ -309,7 +301,10 @@ so the entire inner ``multipart/mixed`` is discarded.
     ... aaa
     ... --AAA--
     ... """)
-    >>> process(mlist, msg, {})
+
+    >>> with dummy_script():
+    ...     process(mlist, msg, {})
+
     >>> print(msg.as_string())
     From: aperson@example.com
     Content-Type: multipart/mixed; boundary=AAA
