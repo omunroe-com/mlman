@@ -19,11 +19,18 @@
 
 __all__ = [
     'TestDispose',
+    'TestHTMLFilter',
+    'dummy_script',
     ]
 
 
+import os
+import sys
+import shutil
+import tempfile
 import unittest
 
+from contextlib import ExitStack, contextmanager
 from mailman.app.lifecycle import create_list
 from mailman.config import config
 from mailman.core import errors
@@ -39,10 +46,32 @@ from zope.component import getUtility
 
 
 
+@contextmanager
+def dummy_script():
+    with ExitStack() as resources:
+        tempdir = tempfile.mkdtemp()
+        resources.callback(shutil.rmtree, tempdir)
+        filter_path = os.path.join(tempdir, 'filter.py')
+        with open(filter_path, 'w', encoding='utf-8') as fp:
+            print("""\
+import sys
+print('Converted text/html to text/plain')
+print('Filename:', sys.argv[1])
+""", file=fp)
+        config.push('dummy script', """\
+[mailman]
+html_to_plain_text_command = {exe} {script} $filename
+""".format(exe=sys.executable, script=filter_path))
+        resources.callback(config.pop, 'dummy script')
+        yield
+
+
+
 class TestDispose(unittest.TestCase):
     """Test the mime_delete handler."""
 
     layer = ConfigLayer
+    maxxDiff = None
 
     def setUp(self):
         self._mlist = create_list('test@example.com')
@@ -57,11 +86,7 @@ Message-ID: <ant>
         [mailman]
         site_owner: noreply@example.com
         """)
-        # Let assertMultiLineEqual work without bounds.
-        self.maxDiff = None
-
-    def tearDown(self):
-        config.pop('dispose')
+        self.addCleanup(config.pop, 'dispose')
 
     def test_dispose_discard(self):
         self._mlist.filter_action = FilterAction.discard
@@ -171,3 +196,34 @@ message.
             self.assertTrue(line.endswith(
                 '{0} invalid FilterAction: test@example.com.  '
                 'Treating as discard'.format(action.name)))
+
+
+
+class TestHTMLFilter(unittest.TestCase):
+    """Test the conversion of HTML to plaintext."""
+
+    layer = ConfigLayer
+
+    def setUp(self):
+        self._mlist = create_list('test@example.com')
+        self._mlist.convert_html_to_plaintext = True
+        self._mlist.filter_content = True
+
+    def test_convert_html_to_plaintext(self):
+        # Converting to plain text calls a command line script.
+        msg = mfs("""\
+From: aperson@example.com
+Content-Type: text/html
+MIME-Version: 1.0
+
+<html><head></head>
+<body></body></html>
+""")
+        process = config.handlers['mime-delete'].process
+        with dummy_script():
+            process(self._mlist, msg, {})
+        self.assertEqual(msg.get_content_type(), 'text/plain')
+        self.assertTrue(
+            msg['x-content-filtered-by'].startswith('Mailman/MimeDel'))
+        payload_lines = msg.get_payload().splitlines()
+        self.assertEqual(payload_lines[0], 'Converted text/html to text/plain')

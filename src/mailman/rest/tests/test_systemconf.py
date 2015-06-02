@@ -43,16 +43,17 @@ class TestSystemConfiguration(unittest.TestCase):
         self.assertIn('http_etag', json)
         del json['http_etag']
         self.assertEqual(json, dict(
-            site_owner='noreply@example.com',
-            noreply_address='noreply',
             default_language='en',
-            sender_headers='from from_ reply-to sender',
             email_commands_max_lines='10',
-            pending_request_life='3d',
-            pre_hook='',
-            post_hook='',
-            layout='testing',
             filtered_messages_are_preservable='no',
+            html_to_plain_text_command='/usr/bin/lynx -dump $filename',
+            layout='testing',
+            noreply_address='noreply',
+            pending_request_life='3d',
+            post_hook='',
+            pre_hook='',
+            sender_headers='from from_ reply-to sender',
+            site_owner='noreply@example.com',
             ))
 
     def test_dotted_section(self):

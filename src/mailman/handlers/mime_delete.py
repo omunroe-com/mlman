@@ -30,13 +30,16 @@ __all__ = [
 
 
 import os
-import errno
+import shutil
 import logging
 import tempfile
+import subprocess
 
+from contextlib import ExitStack
 from email.iterators import typed_subpart_iterator
 from email.mime.message import MIMEMessage
 from email.mime.text import MIMEText
+from itertools import count
 from lazr.config import as_boolean
 from mailman.config import config
 from mailman.core import errors
@@ -46,7 +49,7 @@ from mailman.interfaces.action import FilterAction
 from mailman.interfaces.handler import IHandler
 from mailman.utilities.string import oneline
 from mailman.version import VERSION
-from os.path import splitext
+from string import Template
 from zope.interface import implementer
 
 
@@ -144,8 +147,8 @@ def process(mlist, msg, msgdata):
     changedp = 0
     if numparts != len([subpart for subpart in msg.walk()]):
         changedp = 1
-    # Now perhaps convert all text/html to text/plain
-    if mlist.convert_html_to_plaintext and config.HTML_TO_PLAIN_TEXT_COMMAND:
+    # Now perhaps convert all text/html to text/plain.
+    if mlist.convert_html_to_plaintext:
         changedp += to_plaintext(msg)
     # If we're left with only two parts, an empty body and one attachment,
     # recast the message to one of just that part
@@ -236,30 +239,29 @@ def collapse_multipart_alternatives(msg):
 
 
 def to_plaintext(msg):
-    changedp = False
-    for subpart in typed_subpart_iterator(msg, 'text', 'html'):
-        filename = tempfile.mktemp('.html')
-        fp = open(filename, 'w')
-        try:
-            fp.write(subpart.get_payload())
-            fp.close()
-            cmd = os.popen(config.HTML_TO_PLAIN_TEXT_COMMAND %
-                           {'filename': filename})
-            plaintext = cmd.read()
-            rtn = cmd.close()
-            if rtn:
-                log.error('HTML->text/plain error: %s', rtn)
-        finally:
+    changedp = 0
+    counter = count()
+    with ExitStack() as resources:
+        tempdir = tempfile.mkdtemp()
+        resources.callback(shutil.rmtree, tempdir)
+        for subpart in typed_subpart_iterator(msg, 'text', 'html'):
+            filename = os.path.join(tempdir, '{}.html'.format(next(counter)))
+            with open(filename, 'w', encoding='utf-8') as fp:
+                fp.write(subpart.get_payload())
+            template = Template(config.mailman.html_to_plain_text_command)
+            command = template.safe_substitute(filename=filename).split()
             try:
-                os.unlink(filename)
-            except OSError as e:
-                if e.errno != errno.ENOENT:
-                    raise
-        # Now replace the payload of the subpart and twiddle the Content-Type:
-        del subpart['content-transfer-encoding']
-        subpart.set_payload(plaintext)
-        subpart.set_type('text/plain')
-        changedp = True
+                stdout = subprocess.check_output(
+                    command, universal_newlines=True)
+            except subprocess.CalledProcessError:
+                log.exception('HTML -> text/plain command error')
+            else:
+                # Replace the payload of the subpart with the converted text
+                # and tweak the content type.
+                del subpart['content-transfer-encoding']
+                subpart.set_payload(stdout)
+                subpart.set_type('text/plain')
+                changedp += 1
     return changedp
 
 
@@ -272,7 +274,7 @@ def get_file_ext(m):
     fext = ''
     filename = m.get_filename('') or m.get_param('name', '')
     if filename:
-        fext = splitext(oneline(filename,'utf-8'))[1]
+        fext = os.path.splitext(oneline(filename,'utf-8'))[1]
         if len(fext) > 1:
             fext = fext[1:]
         else:
