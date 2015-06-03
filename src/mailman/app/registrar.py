@@ -104,4 +104,4 @@ def handle_ConfirmationNeededEvent(event):
             event.mlist.preferred_language.code))
     text = _(template)
     msg = UserNotification(email_address, confirm_address, subject, text)
-    msg.send(event.mlist)
+    msg.send(event.mlist, add_precedence=False)

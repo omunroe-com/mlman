@@ -23,6 +23,7 @@ Bugs
    subpart to plaintext via the `mimedel` handler.  Now, a configuration
    variable `[mailman]html_to_plain_text_command` in the `mailman.cfg` file
    defines the command to use.  It defaults to `lynx`.  (Closes: #109)
+ * Confirmation messages should not be `Precedence: bulk`.  (Closes #75)
 
 
 3.0.0 -- "Show Don't Tell"
