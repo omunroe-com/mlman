@@ -24,6 +24,8 @@ Bugs
    variable `[mailman]html_to_plain_text_command` in the `mailman.cfg` file
    defines the command to use.  It defaults to `lynx`.  (Closes: #109)
  * Confirmation messages should not be `Precedence: bulk`.  (Closes #75)
+ * The ``prototype`` archiver is not web accessible so it does not have a
+   ``list_url`` or permalink.  Given by Aurélien Bompard.
 
 
 3.0.0 -- "Show Don't Tell"

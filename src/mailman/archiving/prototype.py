@@ -31,7 +31,6 @@ from flufl.lock import Lock, TimeOutError
 from mailbox import Maildir
 from mailman.config import config
 from mailman.interfaces.archiver import IArchiver
-from urllib.parse import urljoin
 from zope.interface import implementer
 
 
@@ -53,20 +52,14 @@ class Prototype:
     @staticmethod
     def list_url(mlist):
         """See `IArchiver`."""
-        return mlist.domain.base_url
+        # This archiver is not web-accessible, therefore no URL is returned.
+        return None
 
     @staticmethod
     def permalink(mlist, msg):
         """See `IArchiver`."""
-        # It is the LMTP server's responsibility to ensure that the message
-        # has a X-Message-ID-Hash header.  If it doesn't then there's no
-        # permalink.
-        message_id_hash = msg.get('x-message-id-hash')
-        if message_id_hash is None:
-            return None
-        if isinstance(message_id_hash, bytes):
-            message_id_hash = message_id_hash.decode('ascii')
-        return urljoin(Prototype.list_url(mlist), message_id_hash)
+        # This archiver is not web-accessible, therefore no URL is returned.
+        return None
 
     @staticmethod
     def archive_message(mlist, message):
@@ -115,5 +108,4 @@ class Prototype:
                           message.get('message-id', 'n/a')))
         finally:
             lock.unlock(unconditionally=True)
-        # Can we get return the URL of the archived message?
         return None

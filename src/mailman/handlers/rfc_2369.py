@@ -85,12 +85,13 @@ def process(mlist, msg, msgdata):
             for archiver in archiver_set.archivers:
                 if not archiver.is_enabled:
                     continue
-                archiver_url = '<{}>'.format(
-                    archiver.system_archiver.list_url(mlist))
-                headers.append(('List-Archive', archiver_url))
+                archiver_url = archiver.system_archiver.list_url(mlist)
+                if archiver_url is not None:
+                    headers.append(('List-Archive',
+                                    '<{}>'.format(archiver_url)))
                 permalink = archiver.system_archiver.permalink(mlist, msg)
                 if permalink is not None:
-                    headers.append(('Archived-At', permalink))
+                    headers.append(('Archived-At', '<{}>'.format(permalink)))
     # XXX RFC 2369 also defines a List-Owner header which we are not currently
     # supporting, but should.
     #

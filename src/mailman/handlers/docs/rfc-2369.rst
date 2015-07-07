@@ -169,62 +169,16 @@ Any existing ``List-Id`` headers are removed from the original message.
 Archive headers
 ===============
 
-When the mailing list is configured to enable archiving, a `List-Archive`
-header will be added.
-
-    >>> mlist.archive_policy = ArchivePolicy.public
+When the mailing list is configured to enable archiving, ``List-Archive``
+headers will be added for each web accessible archiver that is enabled.
 
 `RFC 5064`_ defines the `Archived-At` header which contains the url to the
 individual message in the archives.  Archivers which don't support
 pre-calculation of the archive url cannot add the `Archived-At` header.
 However, other archivers can calculate the url, and do add this header.
 
-    >>> config.push('prototype', """
-    ... [archiver.prototype]
-    ... enable: yes
-    ... [archiver.mail_archive]
-    ... enable: no
-    ... [archiver.mhonarc]
-    ... enable: no
-    ... [archiver.pipermail]
-    ... enable: No
-    ... """)
-
-The *prototype* archiver can calculate this archive url given a `Message-ID`.
-
-    >>> msg = message_from_string("""\
-    ... From: aperson@example.com
-    ... Message-ID: <first>
-    ... X-Message-ID-Hash: 4CMWUN6BHVCMHMDAOSJZ2Q72G5M32MWB
-    ...
-    ... """)
-    >>> process(mlist, msg, {})
-    >>> list_headers(msg, only=('list-archive', 'archived-at'))
-    ---start---
-    archived-at: http://lists.example.com/4CMWUN6BHVCMHMDAOSJZ2Q72G5M32MWB
-    list-archive: <http://lists.example.com>
-    ---end---
-
 If the mailing list isn't being archived, neither the `List-Archive` nor
 `Archived-At` headers will be added.
-
-    >>> config.pop('prototype')
-    >>> mlist.archive_policy = ArchivePolicy.never
-    >>> msg = message_from_string("""\
-    ... From: aperson@example.com
-    ...
-    ... """)
-    >>> process(mlist, msg, {})
-    >>> list_headers(msg)
-    ---start---
-    list-help: <mailto:test-request@example.com?subject=help>
-    list-id: My test mailing list <test.example.com>
-    list-post: <mailto:test@example.com>
-    list-subscribe: <http://lists.example.com/listinfo/test@example.com>,
-        <mailto:test-join@example.com>
-    list-unsubscribe: <http://lists.example.com/listinfo/test@example.com>,
-        <mailto:test-leave@example.com>
-    ---end---
 
 
 .. _`RFC 2919`: http://www.faqs.org/rfcs/rfc2919.html
