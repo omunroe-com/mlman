@@ -6,7 +6,7 @@ This is a quick guide for setting up a development environment to work on
 Mailman 3's web UI, called Postorius.  If all goes as planned, you should be
 done within 5 minutes.  This has been tested on Ubuntu 11.04.
 
-In order to download the components necessary you need to have the `Bazaar`_
+In order to download the components necessary you need to have the `Git`_
 version control system installed on your system.  Mailman requires Python 3.4,
 while mailman.client needs at least Python version 2.6.
 
@@ -17,16 +17,16 @@ mailman.client) and other using Python version 3.4 (for Mailman core).
 
 .. _`virtualenv`: http://pypi.python.org/pypi/virtualenv
 .. _`Here is a brief HOWTO`: ./ArchiveUIin5.html#get-it-running-under-virtualenv
-.. _`Bazaar`: http://bazaar.canonical.com/en/
+.. _`Git`: http://git-scm.com
 
 
 GNU Mailman 3
 =============
 
-First download the latest revision of Mailman 3 from Launchpad.
+First download the latest revision of Mailman 3 from Gitlab.
 ::
 
-  $(py3) bzr branch lp:mailman
+  $(py3) git clone git@gitlab.com:mailman/mailman.git
 
 Install the Core::
 
@@ -47,9 +47,9 @@ mailman.client (the Python bindings for Mailman's REST API)
 ===========================================================
 
 Now you should switch to the virtual environment running Python version 2.6 or
-2.7.  Download the client from Launchpad::
+2.7.  Download the client from Gitlab::
 
-  $(py2) bzr branch lp:mailman.client
+  $(py2) git clone git@gitlab.com:mailman/mailmanclient.git
 
 Install in development mode to be able to change the code without working
 directly on the PYTHONPATH.
@@ -65,7 +65,7 @@ Postorius
 
 ::
 
-  $(py2) bzr branch lp:postorius
+  $(py2) git clone git@gitlab.com:mailman/postorius.git
   $(py2) cd postorius
   $(py2) python setup.py develop
 
@@ -76,7 +76,7 @@ Start the development server
 Postorius is a Django app which can be used with any Django project.  We have
 a project already developed which you can set up like this::
 
-  $(py2) bzr branch lp:~mailman-coders/postorius/postorius_standalone
+  $(py2) git clone git@github.com:mailman/postorius_standalone.git
   $(py2) cd postorius_standalone
   $(py2) python manage.py syncdb
   $(py2) python manage.py runserver

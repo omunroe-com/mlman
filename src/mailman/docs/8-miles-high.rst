@@ -10,8 +10,8 @@ Notes from the PyCon 2012 Mailman Sprint
 
 *These are notes from the Mailman sprint at PyCon 2012.  They are not
 terribly well organized, nor fully fleshed out.  Please edit and push
-branches to Launchpad at lp:mailman or post patches to
-the Mailman bug tracker at <https://bugs.launchpad.net/mailman>.*
+branches to `Gitlab`_ or post patches to
+the Mailman bug tracker at <https://gitlab.com/mailman/mailman/issues>.*
 
 The intent of this document is to provide a view of Mailman 3's workflow and
 structures from "eight miles high".
@@ -204,3 +204,4 @@ substyles, *etc*.
 
 
 .. _`lazr.config`: http://pypi.python.org/pypi/lazr.config
+.. _`Gitlab` : http://gitlab.com/mailman/mailman

@@ -114,4 +114,4 @@ assumes the use of Python 3.
 
 
 .. _`PEP 8`: http://www.python.org/peps/pep-0008.html
-.. _`GNU Mailman Python template`: http://bazaar.launchpad.net/~mailman-coders/mailman/3.0/annotate/head%3A/template.py
+.. _`GNU Mailman Python template`: https://gitlab.com/mailman/mailman/blob/master/template.py

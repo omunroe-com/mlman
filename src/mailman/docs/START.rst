@@ -12,7 +12,7 @@ Contact Us
 
 Contributions of code, problem reports, and feature requests are welcome.
 Please submit bug reports on the Mailman bug tracker at
-https://bugs.launchpad.net/mailman (you need to have a login on Launchpad to
+https://gitlab.com/mailman/mailman/issues (you need to have a login on Gitlab to
 do so).  You can also send email to the mailman-developers@python.org mailing
 list, or ask on IRC channel ``#mailman`` on Freenode.
 
@@ -200,10 +200,10 @@ The Hyperkitty archiver is very loosely coupled to Mailman 3 core.  In fact,
 any email application that speaks LMTP or SMTP will be able to use Hyperkitty.
 
 
-.. _`Postorius`: https://launchpad.net/postorius
-.. _`Hyperkitty`: https://launchpad.net/hyperkitty
+.. _`Postorius`: https://gitlab.com/mailman/postorius
+.. _`Hyperkitty`: https://gitlab.com/mailman/hyperkitty
 .. _`Django`: http://djangoproject.org/
-.. _`REST client module`: https://launchpad.net/mailman.client
+.. _`REST client module`: https://gitlab.com/mailman/mailmanclient
 .. _`Five Minute Guide the Web UI`: WebUIin5.html
 .. _`blog post`: http://wiki.list.org/display/DEV/A+5+minute+guide+to+get+the+Mailman+web+UI+running
 .. _`notmuch mail indexer`: http://notmuchmail.org
