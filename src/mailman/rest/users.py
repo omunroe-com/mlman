@@ -82,7 +82,7 @@ ATTRIBUTES = dict(
 CREATION_FIELDS = dict(
     display_name=str,
     email=str,
-    is_server_owner=bool,
+    is_server_owner=as_boolean,
     password=str,
     _optional=('display_name', 'password', 'is_server_owner'),
     )

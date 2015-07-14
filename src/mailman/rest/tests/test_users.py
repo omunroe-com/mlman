@@ -212,6 +212,33 @@ class TestUsers(unittest.TestCase):
         content, response = call_api('http://localhost:9001/3.0/users')
         self.assertEqual(content['total_size'], 1)
 
+    def test_create_server_owner_false(self):
+        # Issue #136: Creating a user with is_server_owner=no should create
+        # user who is not a server owner.
+        content, response = call_api('http://localhost:9001/3.0/users', dict(
+            email='anne@example.com',
+            is_server_owner='no'))
+        anne = getUtility(IUserManager).get_user('anne@example.com')
+        self.assertFalse(anne.is_server_owner)
+
+    def test_create_server_owner_true(self):
+        # Issue #136: Creating a user with is_server_owner=yes should create a
+        # new server owner user.
+        content, response = call_api('http://localhost:9001/3.0/users', dict(
+            email='anne@example.com',
+            is_server_owner='yes'))
+        anne = getUtility(IUserManager).get_user('anne@example.com')
+        self.assertTrue(anne.is_server_owner)
+
+    def test_create_server_owner_bogus(self):
+        # Issue #136: Creating a user with is_server_owner=bogus should throw
+        # an exception.
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/users', dict(
+                email='anne@example.com',
+                is_server_owner='bogus'))
+        self.assertEqual(cm.exception.code, 400)
+
     def test_preferences_deletion_on_user_deletion(self):
         # LP: #1418276 - deleting a user did not delete their preferences.
         with transaction():
