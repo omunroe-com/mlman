@@ -168,7 +168,48 @@ class TestAddresses(unittest.TestCase):
                      'email': 'anne@example.com',
                      })
         self.assertEqual(cm.exception.code, 400)
-        self.assertEqual(cm.exception.reason, b'Address already exists')
+        self.assertEqual(cm.exception.reason,
+                         b'Address belongs to other user.')
+
+    def test_add_unlinked_address_to_user(self):
+        user_manager = getUtility(IUserManager)
+        with transaction():
+            anne = user_manager.create_user('anne.person@example.com')
+            user_manager.create_address('anne@example.com')
+        response, content = call_api(
+         'http://localhost:9001/3.0/users/anne.person@example.com/addresses', {
+            'email': 'anne@example.com',
+            })
+        self.assertIn('anne@example.com',
+                      [address.email for address in anne.addresses])
+        self.assertEqual(content['status'], '201')
+        self.assertEqual(
+            content['location'],
+            'http://localhost:9001/3.0/addresses/anne@example.com')
+        # The address has no display name.
+        anne_person = user_manager.get_address('anne@example.com')
+        self.assertEqual(anne_person.display_name, '')
+
+    def test_add_unlinked_address_to_user_with_ignored_display_name(self):
+        user_manager = getUtility(IUserManager)
+        with transaction():
+            anne = user_manager.create_user('anne.person@example.com')
+            user_manager.create_address('anne@example.com')
+        response, content = call_api(
+         'http://localhost:9001/3.0/users/anne.person@example.com/addresses', {
+            'email': 'anne@example.com',
+            'display_name': 'Anne Person',
+            })
+        self.assertIn('anne@example.com',
+                      [address.email for address in anne.addresses])
+        self.assertEqual(content['status'], '201')
+        self.assertEqual(
+            content['location'],
+            'http://localhost:9001/3.0/addresses/anne@example.com')
+        # Even though a display_name was given in the POST data, because the
+        # address already existed, it still has no display name.
+        anne_person = user_manager.get_address('anne@example.com')
+        self.assertEqual(anne_person.display_name, '')
 
     def test_invalid_address_bad_request(self):
         # Trying to add an invalid address string returns 400.

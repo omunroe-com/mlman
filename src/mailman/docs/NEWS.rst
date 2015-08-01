@@ -28,6 +28,8 @@ Bugs
    ``list_url`` or permalink.  Given by Aurélien Bompard.
  * The REST API incorrectly parsed `is_server_owner` values when given
    explicitly in the POST that creates a user.  (Closes #136)
+ * By POSTing to a user resource with an existing unlinked address, you can
+   link the address to the user.  Given by Abhilash Raj.
 
 
 3.0.0 -- "Show Don't Tell"
