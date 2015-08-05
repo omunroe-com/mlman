@@ -30,6 +30,8 @@ Bugs
    explicitly in the POST that creates a user.  (Closes #136)
  * By POSTing to a user resource with an existing unlinked address, you can
    link the address to the user.  Given by Abhilash Raj.
+ * Fix constraint violations on mailing list deletes affecting PostgreSQL.
+   Given by Abhilash Raj.  (Closes #115)
 
 
 3.0.0 -- "Show Don't Tell"

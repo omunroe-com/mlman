@@ -29,10 +29,12 @@ import unittest
 from mailman.app.lifecycle import create_list
 from mailman.app.moderator import hold_message
 from mailman.config import config
+from mailman.interfaces.autorespond import IAutoResponseSet, Response
 from mailman.interfaces.address import InvalidEmailAddressError
 from mailman.interfaces.listmanager import (
     IListManager, ListAlreadyExistsError, ListCreatedEvent, ListCreatingEvent,
     ListDeletedEvent, ListDeletingEvent)
+from mailman.interfaces.mailinglist import IListArchiverSet
 from mailman.interfaces.messages import IMessageStore
 from mailman.interfaces.requests import IListRequests
 from mailman.interfaces.subscriptions import ISubscriptionService
@@ -85,6 +87,29 @@ class TestListManager(unittest.TestCase):
         self.assertEqual(
             sorted(getUtility(IListManager).list_ids),
             ['ant.example.com', 'bee.example.com', 'cat.example.com'])
+
+    def test_delete_list_with_list_archiver_set(self):
+        # Ensure that mailing lists with archiver sets can be deleted.  In
+        # issue #115, this fails under PostgreSQL, but not SQLite.
+        mlist = create_list('ant@example.com')
+        # We don't keep a reference to this archiver set just because it makes
+        # pyflakes unhappy.  It doesn't change the outcome.
+        IListArchiverSet(mlist)
+        list_manager = getUtility(IListManager)
+        list_manager.delete(mlist)
+        self.assertIsNone(list_manager.get('ant@example.com'))
+
+    def test_delete_list_with_autoresponse_record(self):
+        # Ensure that mailing lists with auto-response sets can be deleted.  In
+        # issue #115, this fails under PostgreSQL, but not SQLite.
+        list_manager = getUtility(IListManager)
+        user_manager = getUtility(IUserManager)
+        mlist = create_list('ant@example.com')
+        address = user_manager.create_address('aperson@example.com')
+        autoresponse_set = IAutoResponseSet(mlist)
+        autoresponse_set.response_sent(address, Response.hold)
+        list_manager.delete(mlist)
+        self.assertIsNone(list_manager.get('ant@example.com'))
 
 
 
