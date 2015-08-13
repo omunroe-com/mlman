@@ -1,0 +1,18 @@
+# This is core test runner
+before_script:
+  - pip install tox
+
+sqlite:
+  script:
+  - tox
+
+  tags:
+  - sqlite
+
+
+pgsql:
+  script:
+  - MAILMAN_EXTRA_TESTING_CFG=/data/postgres.cfg tox -e pg
+
+  tags:
+  - postgres
