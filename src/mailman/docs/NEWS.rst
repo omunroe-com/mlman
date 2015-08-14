@@ -32,6 +32,8 @@ Bugs
    link the address to the user.  Given by Abhilash Raj.
  * Fix constraint violations on mailing list deletes affecting PostgreSQL.
    Given by Abhilash Raj.  (Closes #115)
+ * `mailman` command with no subcommand now prints the help text.  Given by
+   Abhilash Raj.  (Closes #137)
 
 
 3.0.0 -- "Show Don't Tell"
