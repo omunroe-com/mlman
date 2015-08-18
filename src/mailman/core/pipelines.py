@@ -118,6 +118,7 @@ class PostingPipeline(BasePipeline):
         'cook-headers',
         'subject-prefix',
         'rfc-2369',
+        'decorate',
         'to-archive',
         'to-digest',
         'to-usenet',
