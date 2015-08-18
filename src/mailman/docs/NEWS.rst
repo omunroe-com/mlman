@@ -34,6 +34,8 @@ Bugs
    Given by Abhilash Raj.  (Closes #115)
  * `mailman` command with no subcommand now prints the help text.  Given by
    Abhilash Raj.  (Closes #137)
+ * The MHonArc archiver must set stdin=PIPE when calling the subprocess.  Given
+   by Walter Doekes.
 
 
 3.0.0 -- "Show Don't Tell"

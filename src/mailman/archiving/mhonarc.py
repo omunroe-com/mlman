@@ -23,12 +23,12 @@ __all__ = [
 
 
 import logging
-import subprocess
 
 from mailman.config import config
 from mailman.config.config import external_configuration
 from mailman.interfaces.archiver import IArchiver
 from mailman.utilities.string import expand
+from subprocess import PIPE, Popen
 from urllib.parse import urljoin
 from zope.interface import implementer
 
@@ -78,8 +78,9 @@ class MHonArc:
         substitutions = config.__dict__.copy()
         substitutions['listname'] = mlist.fqdn_listname
         command = expand(self.command, substitutions)
-        proc = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        proc = Popen(
+            command,
+            stdin=PIPE, stdout=PIPE, stderr=PIPE,
             universal_newlines=True, shell=True)
         stdout, stderr = proc.communicate(msg.as_string())
         if proc.returncode != 0:

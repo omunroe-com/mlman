@@ -47,7 +47,7 @@ class TestPrototypeArchiver(unittest.TestCase):
     layer = ConfigLayer
 
     def setUp(self):
-        # Create a fake mailing list and message object
+        # Create a fake mailing list and message object.
         self._msg = mfs("""\
 To: test@example.com
 From: anne@example.com
