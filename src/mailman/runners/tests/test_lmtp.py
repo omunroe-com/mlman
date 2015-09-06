@@ -170,3 +170,19 @@ Message-ID: <alpha>
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0].msgdata['listid'],
                          'my-list.example.com')
+
+    def test_issue140(self):
+        # Non-UTF-8 data sent to the LMTP server crashes it.
+        with transaction():
+            create_list('ant@example.com')
+        self._lmtp.sendmail('anne@example.com', ['ant@example.com'], b"""\
+From: anne@example.com
+To: ant@example.com
+Subject: My subject
+Message-ID: <alpha>
+
+\xa0
+""")
+        messages = get_queue_messages('in')
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0].msg['message-id'], '<alpha>')
