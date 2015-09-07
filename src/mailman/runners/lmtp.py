@@ -39,8 +39,8 @@ __all__ = [
     ]
 
 
+import sys
 import email
-import smtpd
 import logging
 import asyncore
 
@@ -53,6 +53,14 @@ from mailman.interfaces.listmanager import IListManager
 from mailman.utilities.datetime import now
 from mailman.utilities.email import add_message_hash
 from zope.component import getUtility
+
+# Python 3.4's smtpd module can't handle non-UTF-8 byte input.  Unfortunately
+# we do get such emails in the wild.  Python 3.5's version of the module does
+# handle it correctly.  We vendor a version to use in the Python 3.4 case.
+if sys.version_info < (3, 5):
+    from mailman.compat import smtpd
+else:
+    import smtpd
 
 
 elog = logging.getLogger('mailman.error')
@@ -95,7 +103,7 @@ ERR_550 = '550 Requested action not taken: mailbox unavailable'
 ERR_550_MID = '550 No Message-ID header provided'
 
 # XXX Blech
-smtpd.__version__ = 'Python LMTP runner 1.0'
+smtpd.__version__ = 'GNU Mailman LMTP runner 1.1'
 
 
 
@@ -131,13 +139,13 @@ class Channel(smtpd.SMTPChannel):
     """An LMTP channel."""
 
     def __init__(self, server, conn, addr):
-        smtpd.SMTPChannel.__init__(self, server, conn, addr)
+        super().__init__(server, conn, addr, decode_data=False)
         # Stash this here since the subclass uses private attributes. :(
         self._server = server
 
     def smtp_LHLO(self, arg):
         """The LMTP greeting, used instead of HELO/EHLO."""
-        smtpd.SMTPChannel.smtp_HELO(self, arg)
+        super().smtp_HELO(arg)
 
     def smtp_HELO(self, arg):
         """HELO is not a valid LMTP command."""
@@ -146,6 +154,7 @@ class Channel(smtpd.SMTPChannel):
     ## def push(self, arg):
     ##     import pdb; pdb.set_trace()
     ##     return super().push(arg)
+
 
 
 
@@ -170,14 +179,14 @@ class LMTPRunner(Runner, smtpd.SMTPServer):
         slog.debug('LMTP accept from %s', addr)
 
     @transactional
-    def process_message(self, peer, mailfrom, rcpttos, data):
+    def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
         try:
             # Refresh the list of list names every time we process a message
             # since the set of mailing lists could have changed.
             listnames = set(getUtility(IListManager).names)
             # Parse the message data.  If there are any defects in the
             # message, reject it right away; it's probably spam.
-            msg = email.message_from_string(data, Message)
+            msg = email.message_from_bytes(data, Message)
         except Exception:
             elog.exception('LMTP message parsing')
             config.db.abort()

@@ -39,6 +39,8 @@ Bugs
  * For now, treat `DeliveryMode.summary_digests` the same as `.mime_digests`.
    (Closes #141).  Also, don't enqueue a particular digest if there are no
    recipients for that digest.
+ * For Python versions earlier than 3.5, use a compatibility layer for a
+   backported smtpd module which can accept non-UTF-8 data.  (Closes #140)
 
 
 3.0.0 -- "Show Don't Tell"

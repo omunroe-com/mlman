@@ -20,7 +20,7 @@ Let's start a testable LMTP runner.
 It also helps to have a nice LMTP client.
 
     >>> lmtp = helpers.get_lmtp_client()
-    (220, b'... Python LMTP runner 1.0')
+    (220, b'... GNU Mailman LMTP runner 1.1')
     >>> lmtp.lhlo('remote.example.org')
     (250, ...)
 
