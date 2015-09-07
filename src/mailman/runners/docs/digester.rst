@@ -79,12 +79,34 @@ text (RFC 1153) digest and the MIME digest.
     >>> runner = make_testable_runner(DigestRunner)
     >>> runner.run()
 
-The digest runner places both digests into the virgin queue for final
-delivery.
+If there are no members receiving digests, none are sent.
 
     >>> messages = get_queue_messages('virgin')
     >>> len(messages)
+    0
+
+Once some users are subscribed and receiving digests, the digest runner places
+both digests into the virgin queue for final delivery.
+::
+
+    >>> from mailman.testing.helpers import subscribe
+    >>> from mailman.interfaces.member import DeliveryMode
+
+    >>> anne = subscribe(mlist, 'Anne')
+    >>> anne.preferences.delivery_mode = DeliveryMode.mime_digests
+    >>> bart = subscribe(mlist, 'Bart')
+    >>> bart.preferences.delivery_mode = DeliveryMode.plaintext_digests
+
+    >>> fill_digest()
+    >>> runner.run()
+    >>> messages = get_queue_messages('virgin')
+    >>> len(messages)
     2
+
+Anne and Bart unsubscribe from the mailing list.
+
+    >>> anne.unsubscribe()
+    >>> bart.unsubscribe()
 
 The MIME digest is a multipart, and the RFC 1153 digest is the other one.
 ::
@@ -102,7 +124,7 @@ The MIME digest has lots of good stuff, all contained in the multipart.
     Content-Type: multipart/mixed; boundary="===============...=="
     MIME-Version: 1.0
     From: test-request@example.com
-    Subject: Test Digest, Vol 1, Issue 1
+    Subject: Test Digest, Vol 1, Issue 2
     To: test@example.com
     Reply-To: test@example.com
     Date: ...
@@ -112,7 +134,7 @@ The MIME digest has lots of good stuff, all contained in the multipart.
     Content-Type: text/plain; charset="us-ascii"
     MIME-Version: 1.0
     Content-Transfer-Encoding: 7bit
-    Content-Description: Test Digest, Vol 1, Issue 1
+    Content-Description: Test Digest, Vol 1, Issue 2
     <BLANKLINE>
     Send Test mailing list submissions to
         test@example.com
@@ -202,7 +224,7 @@ The RFC 1153 contains the digest in a single plain text message.
 
     >>> print(rfc1153.msg.as_string())
     From: test-request@example.com
-    Subject: Test Digest, Vol 1, Issue 1
+    Subject: Test Digest, Vol 1, Issue 2
     To: test@example.com
     Reply-To: test@example.com
     Date: ...
@@ -277,7 +299,7 @@ The RFC 1153 contains the digest in a single plain text message.
     <BLANKLINE>
     ------------------------------
     <BLANKLINE>
-    End of Test Digest, Vol 1, Issue 1
+    End of Test Digest, Vol 1, Issue 2
     **********************************
     <BLANKLINE>
 

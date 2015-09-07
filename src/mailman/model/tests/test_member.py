@@ -31,7 +31,6 @@ from mailman.interfaces.usermanager import IUserManager
 from mailman.model.member import Member
 from mailman.testing.layers import ConfigLayer
 from mailman.utilities.datetime import now
-
 from zope.component import getUtility
 
 

@@ -26,7 +26,9 @@ import unittest
 
 from mailman.app.lifecycle import create_list
 from mailman.handlers import cook_headers
-from mailman.testing.helpers import get_queue_messages, make_digest_messages
+from mailman.interfaces.member import DeliveryMode
+from mailman.testing.helpers import (
+    get_queue_messages, make_digest_messages, subscribe)
 from mailman.testing.layers import ConfigLayer
 
 
@@ -38,9 +40,14 @@ class TestCookHeaders(unittest.TestCase):
 
     def setUp(self):
         self._mlist = create_list('test@example.com')
+        self._mlist.send_welcome_message = False
 
     def test_process_digest(self):
         # MIME digests messages are multiparts.
+        anne = subscribe(self._mlist, 'Anne')
+        anne.preferences.delivery_mode = DeliveryMode.mime_digests
+        bart = subscribe(self._mlist, 'Bart')
+        bart.preferences.delivery_mode = DeliveryMode.plaintext_digests
         make_digest_messages(self._mlist)
         messages = [bag.msg for bag in get_queue_messages('virgin')]
         self.assertEqual(len(messages), 2)
