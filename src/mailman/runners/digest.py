@@ -358,7 +358,9 @@ class DigestRunner(Runner):
             email_address = member.address.original_email
             if member.delivery_mode == DeliveryMode.plaintext_digests:
                 rfc1153_recipients.add(email_address)
-            elif member.delivery_mode == DeliveryMode.mime_digests:
+            # We currently treat summary_digests the same as mime_digests.
+            elif member.delivery_mode in (DeliveryMode.mime_digests,
+                                          DeliveryMode.summary_digests):
                 mime_recipients.add(email_address)
             else:
                 raise AssertionError(
@@ -368,7 +370,9 @@ class DigestRunner(Runner):
         for address, delivery_mode in mlist.last_digest_recipients:
             if delivery_mode == DeliveryMode.plaintext_digests:
                 rfc1153_recipients.add(address.original_email)
-            elif delivery_mode == DeliveryMode.mime_digests:
+            # We currently treat summary_digests the same as mime_digests.
+            elif delivery_mode in (DeliveryMode.mime_digests,
+                                   DeliveryMode.summary_digests):
                 mime_recipients.add(address.original_email)
             else:
                 raise AssertionError(
@@ -376,11 +380,13 @@ class DigestRunner(Runner):
                         address, delivery_mode))
         # Send the digests to the virgin queue for final delivery.
         queue = config.switchboards['virgin']
-        queue.enqueue(mime,
-                      recipients=mime_recipients,
-                      listid=mlist.list_id,
-                      isdigest=True)
-        queue.enqueue(rfc1153,
-                      recipients=rfc1153_recipients,
-                      listid=mlist.list_id,
-                      isdigest=True)
+        if len(mime_recipients) > 0:
+            queue.enqueue(mime,
+                          recipients=mime_recipients,
+                          listid=mlist.list_id,
+                          isdigest=True)
+        if len(rfc1153_recipients) > 0:
+            queue.enqueue(rfc1153,
+                          recipients=rfc1153_recipients,
+                          listid=mlist.list_id,
+                          isdigest=True)

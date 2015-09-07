@@ -31,11 +31,13 @@ from io import StringIO
 from mailman.app.lifecycle import create_list
 from mailman.config import config
 from mailman.email.message import Message
+from mailman.interfaces.member import DeliveryMode
 from mailman.runners.digest import DigestRunner
 from mailman.testing.helpers import (
     LogFileMark, digest_mbox, get_queue_messages, make_digest_messages,
     make_testable_runner, message_from_string,
-    specialized_message_from_string as mfs)
+    specialized_message_from_string as mfs,
+    subscribe)
 from mailman.testing.layers import ConfigLayer
 from string import Template
 
@@ -49,6 +51,7 @@ class TestDigest(unittest.TestCase):
 
     def setUp(self):
         self._mlist = create_list('test@example.com')
+        self._mlist.send_welcome_message = False
         self._mlist.digest_size_threshold = 1
         self._digestq = config.switchboards['digest']
         self._shuntq = config.switchboards['shunt']
@@ -69,10 +72,20 @@ class TestDigest(unittest.TestCase):
                              'Test Digest, Vol 1, Issue 1')
 
     def test_simple_message(self):
+        # Subscribe some users receiving digests.
+        anne = subscribe(self._mlist, 'Anne')
+        anne.preferences.delivery_mode = DeliveryMode.mime_digests
+        bart = subscribe(self._mlist, 'Bart')
+        bart.preferences.delivery_mode = DeliveryMode.plaintext_digests
         make_digest_messages(self._mlist)
         self._check_virgin_queue()
 
     def test_non_ascii_message(self):
+        # Subscribe some users receiving digests.
+        anne = subscribe(self._mlist, 'Anne')
+        anne.preferences.delivery_mode = DeliveryMode.mime_digests
+        bart = subscribe(self._mlist, 'Bart')
+        bart.preferences.delivery_mode = DeliveryMode.plaintext_digests
         msg = Message()
         msg['From'] = 'anne@example.org'
         msg['To'] = 'test@example.com'
@@ -94,6 +107,11 @@ class TestDigest(unittest.TestCase):
         self._mlist.volume = 1
         self._mlist.next_digest_number = 1
         self._mlist.send_welcome_message = False
+        # Subscribe some users receiving digests.
+        anne = subscribe(self._mlist, 'Anne')
+        anne.preferences.delivery_mode = DeliveryMode.mime_digests
+        bart = subscribe(self._mlist, 'Bart')
+        bart.preferences.delivery_mode = DeliveryMode.plaintext_digests
         # Fill the digest.
         process = config.handlers['to-digest'].process
         size = 0
@@ -140,6 +158,57 @@ multipart/mixed
     text/plain
 """)
 
+    def test_issue141(self):
+        # Currently DigestMode.summary_digests are equivalent to mime_digests.
+        self._mlist.send_welcome_message = False
+        bart = subscribe(self._mlist, 'Bart')
+        bart.preferences.delivery_mode = DeliveryMode.summary_digests
+        make_digest_messages(self._mlist)
+        # There should be one message in the outgoing queue, destined for
+        # Bart, formatted as a MIME digest.
+        items = get_queue_messages('virgin')
+        self.assertEqual(len(items), 1)
+        # Bart is the only recipient.
+        self.assertEqual(items[0].msgdata['recipients'],
+                         set(['bperson@example.com']))
+        # The message is a MIME digest, with the structure we expect.
+        fp = StringIO()
+        structure(items[0].msg, fp)
+        self.assertMultiLineEqual(fp.getvalue(), """\
+multipart/mixed
+    text/plain
+    text/plain
+    message/rfc822
+        text/plain
+    text/plain
+""")
+
+    def test_issue141_one_last_digest(self):
+        # Currently DigestMode.summary_digests are equivalent to mime_digests.
+        self._mlist.send_welcome_message = False
+        bart = subscribe(self._mlist, 'Bart')
+        self._mlist.send_one_last_digest_to(
+            bart.address, DeliveryMode.summary_digests)
+        make_digest_messages(self._mlist)
+        # There should be one message in the outgoing queue, destined for
+        # Bart, formatted as a MIME digest.
+        items = get_queue_messages('virgin')
+        self.assertEqual(len(items), 1)
+        # Bart is the only recipient.
+        self.assertEqual(items[0].msgdata['recipients'],
+                         set(['bperson@example.com']))
+        # The message is a MIME digest, with the structure we expect.
+        fp = StringIO()
+        structure(items[0].msg, fp)
+        self.assertMultiLineEqual(fp.getvalue(), """\
+multipart/mixed
+    text/plain
+    text/plain
+    message/rfc822
+        text/plain
+    text/plain
+""")
+
 
 
 class TestI18nDigest(unittest.TestCase):
@@ -153,6 +222,7 @@ class TestI18nDigest(unittest.TestCase):
         """)
         self.addCleanup(config.pop, 'french')
         self._mlist = create_list('test@example.com')
+        self._mlist.send_welcome_message = False
         self._mlist.preferred_language = 'fr'
         self._mlist.digest_size_threshold = 0
         self._process = config.handlers['to-digest'].process
@@ -162,6 +232,12 @@ class TestI18nDigest(unittest.TestCase):
         # When messages come in with a content-type character set different
         # than that of the list's preferred language, recipients will get an
         # internationalized digest.
+        #
+        # Subscribe some users receiving digests.
+        anne = subscribe(self._mlist, 'Anne')
+        anne.preferences.delivery_mode = DeliveryMode.mime_digests
+        bart = subscribe(self._mlist, 'Bart')
+        bart.preferences.delivery_mode = DeliveryMode.plaintext_digests
         msg = mfs("""\
 From: aperson@example.org
 To: test@example.com

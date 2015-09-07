@@ -27,12 +27,14 @@ import unittest
 from mailman.app.lifecycle import create_list
 from mailman.config import config
 from mailman.core.runner import Runner
+from mailman.interfaces.member import DeliveryMode
 from mailman.interfaces.runner import RunnerCrashEvent
 from mailman.runners.virgin import VirginRunner
 from mailman.testing.helpers import (
     LogFileMark, configuration, event_subscribers, get_queue_messages,
     make_digest_messages, make_testable_runner,
-    specialized_message_from_string as mfs)
+    specialized_message_from_string as mfs,
+    subscribe)
 from mailman.testing.layers import ConfigLayer
 
 
@@ -93,7 +95,12 @@ Message-ID: <ant>
         # extended attributes we require (e.g. .sender).  The fix is to use a
         # subclass of MIMEMultipart and our own Message subclass; this adds
         # back the required attributes.  (LP: #1130696)
-        #
+        self._mlist.send_welcome_message = False
+        # Subscribe some users receiving digests.
+        anne = subscribe(self._mlist, 'Anne')
+        anne.preferences.delivery_mode = DeliveryMode.mime_digests
+        bart = subscribe(self._mlist, 'Bart')
+        bart.preferences.delivery_mode = DeliveryMode.plaintext_digests
         # Start by creating the raw ingredients for the digests.  This also
         # runs the digest runner, thus producing the digest messages into the
         # virgin queue.
