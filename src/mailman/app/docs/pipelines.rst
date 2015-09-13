@@ -99,10 +99,6 @@ processing queues.
     <BLANKLINE>
     First post!
     <BLANKLINE>
-    _______________________________________________
-    Test mailing list
-    test@example.com
-    http://lists.example.com/listinfo/test@example.com
 
     >>> dump_msgdata(messages[0].msgdata)
     _parsemsg       : False
@@ -175,7 +171,3 @@ There's now one message in the digest mailbox, getting ready to be sent.
     <BLANKLINE>
     First post!
     <BLANKLINE>
-    _______________________________________________
-    Test mailing list
-    test@example.com
-    http://lists.example.com/listinfo/test@example.com
