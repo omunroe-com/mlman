@@ -41,6 +41,8 @@ Bugs
    recipients for that digest.
  * For Python versions earlier than 3.5, use a compatibility layer for a
    backported smtpd module which can accept non-UTF-8 data.  (Closes #140)
+ * Bulk emails are now decorated with headers and footers.  Given by Aurélien
+   Bompard.  (Closes #145)
 
 
 3.0.0 -- "Show Don't Tell"
