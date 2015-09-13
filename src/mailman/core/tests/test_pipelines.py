@@ -34,7 +34,7 @@ from mailman.interfaces.member import MemberRole
 from mailman.interfaces.pipeline import IPipeline
 from mailman.interfaces.usermanager import IUserManager
 from mailman.testing.helpers import (
-    LogFileMark, get_queue_messages, reset_the_world, digest_mbox,
+    LogFileMark, digest_mbox, get_queue_messages, reset_the_world,
     specialized_message_from_string as mfs)
 from mailman.testing.layers import ConfigLayer
 from zope.component import getUtility
@@ -135,8 +135,7 @@ testing
 
     def test_decorate_bulk(self):
         # Ensure that bulk postings get decorated with the footer.
-        msgdata = {}
-        process(self._mlist, self._msg, msgdata,
+        process(self._mlist, self._msg, {},
                 pipeline_name='default-posting-pipeline')
         payload = self._msg.get_payload()
         self.assertIn('Test mailing list', payload)
@@ -150,20 +149,20 @@ testing
         self.assertEqual(payload.count('Test mailing list'), 1)
 
     def test_only_decorate_output(self):
-        # Ensure that decoration is not done on the archive, digest or usenet
-        # copy.
+        # Ensure that decoration is not done on the archive, digest, or
+        # usenet copy of the message.
         self.assertTrue(self._mlist.digestable)
-        # setup NNTP
+        # Set up NNTP.
         self._mlist.gateway_to_news = True
-        self._mlist.linked_newsgroup = "testing"
+        self._mlist.linked_newsgroup = 'testing'
         self._mlist.nntp_host = 'news.example.com'
-        # process the email
-        msgdata = {}
-        process(self._mlist, self._msg, msgdata,
+        # Process the email.
+        process(self._mlist, self._msg, {},
                 pipeline_name='default-posting-pipeline')
         for queue in ('archive', 'nntp'):
             messages = get_queue_messages(queue)
-            self.assertEqual(len(messages), 1,
+            self.assertEqual(
+                len(messages), 1,
                 'Queue {} has {} messages'.format(queue, len(messages)))
             payload = messages[0].msg.get_payload()
             self.assertNotIn('Test mailing list', payload)
