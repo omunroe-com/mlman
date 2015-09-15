@@ -17,10 +17,10 @@ import sqlalchemy as sa
 def upgrade():
     op.create_table('workflowstate',
         sa.Column('name', sa.Unicode(), nullable=False),
-        sa.Column('key', sa.Unicode(), nullable=False),
+        sa.Column('token', sa.Unicode(), nullable=False),
         sa.Column('step', sa.Unicode(), nullable=True),
         sa.Column('data', sa.Unicode(), nullable=True),
-        sa.PrimaryKeyConstraint('name', 'key')
+        sa.PrimaryKeyConstraint('name', 'token')
         )
 
 
