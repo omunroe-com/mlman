@@ -4,7 +4,10 @@ following mailing list posting:
     List:    $listname
     From:    $sender
     Subject: $subject
-    Reason:  $reason
+
+The message is being held because:
+
+$reasons
 
 At your convenience, visit your dashboard to approve or deny the
 request.

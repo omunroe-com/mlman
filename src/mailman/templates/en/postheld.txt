@@ -4,12 +4,9 @@ Your mail to '$listname' with the subject
 
 Is being held until the list moderator can review it for approval.
 
-The reason it is being held:
+The message is being held because:
 
-    $reason
+$reasons
 
 Either the message will get posted to the list, or you will receive
-notification of the moderator's decision.  If you would like to cancel
-this posting, please visit the following URL:
-
-    $confirmurl
+notification of the moderator's decision.

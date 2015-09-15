@@ -26,9 +26,12 @@ import unittest
 
 from mailman.app.lifecycle import create_list
 from mailman.chains.hold import autorespond_to_sender
+from mailman.core.chains import process as process_chain
 from mailman.interfaces.autorespond import IAutoResponseSet, Response
 from mailman.interfaces.usermanager import IUserManager
-from mailman.testing.helpers import configuration, get_queue_messages
+from mailman.testing.helpers import (
+    LogFileMark, configuration, get_queue_messages,
+    specialized_message_from_string as mfs)
 from mailman.testing.layers import ConfigLayer
 from zope.component import getUtility
 
@@ -86,3 +89,48 @@ further responses today.  Please try again tomorrow.
 
 If you believe this message is in error, or if you have any questions,
 please contact the list owner at test-owner@example.com.""")
+
+
+
+class TestHoldChain(unittest.TestCase):
+    """Test the hold chain code."""
+
+    layer = ConfigLayer
+
+    def setUp(self):
+        self._mlist = create_list('test@example.com')
+
+    def test_hold_chain(self):
+        msg = mfs("""\
+From: anne@example.com
+To: test@example.com
+Subject: A message
+Message-ID: <ant>
+MIME-Version: 1.0
+
+A message body.
+""")
+        msgdata = dict(moderation_reasons=[
+            'TEST-REASON-1',
+            'TEST-REASON-2',
+            ])
+        logfile = LogFileMark('mailman.vette')
+        process_chain(self._mlist, msg, msgdata, start_chain='hold')
+        messages = get_queue_messages('virgin')
+        self.assertEqual(len(messages), 2)
+        payloads = {}
+        for item in messages:
+            if item.msg['to'] == 'test-owner@example.com':
+                part = item.msg.get_payload(0)
+                payloads['owner'] = part.get_payload().splitlines()
+            elif item.msg['To'] == 'anne@example.com':
+                payloads['sender'] = item.msg.get_payload().splitlines()
+            else:
+                self.fail('Unexpected message: %s' % item.msg)
+        self.assertIn('    TEST-REASON-1', payloads['owner'])
+        self.assertIn('    TEST-REASON-2', payloads['owner'])
+        self.assertIn('    TEST-REASON-1', payloads['sender'])
+        self.assertIn('    TEST-REASON-2', payloads['sender'])
+        logged = logfile.read()
+        self.assertIn('TEST-REASON-1', logged)
+        self.assertIn('TEST-REASON-2', logged)

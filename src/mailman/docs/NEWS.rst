@@ -44,6 +44,9 @@ Bugs
  * Bulk emails are now decorated with headers and footers.  Given by Aurélien
    Bompard.  (Closes #145)
  * Core no longer depends on the standalone `mock` module.  (Closes: #146)
+ * Fix the logging of moderation reasons.  Given by Aurélien Bompard.  Also,
+   update the postauth.txt and postheld.txt templates to not include the bogus
+   URLs, and to include the translated moderation reasons.
 
 
 3.0.0 -- "Show Don't Tell"

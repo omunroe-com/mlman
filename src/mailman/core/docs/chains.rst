@@ -132,7 +132,10 @@ This one is addressed to the list moderators.
         List:    test@example.com
         From:    aperson@example.com
         Subject: My first post
-        Reason:  N/A
+    <BLANKLINE>
+    The message is being held because:
+    <BLANKLINE>
+        N/A
     <BLANKLINE>
     At your convenience, visit your dashboard to approve or deny the
     request.
@@ -184,63 +187,12 @@ This message is addressed to the sender of the message.
     <BLANKLINE>
     Is being held until the list moderator can review it for approval.
     <BLANKLINE>
-    The reason it is being held:
+    The message is being held because:
     <BLANKLINE>
         N/A
     <BLANKLINE>
     Either the message will get posted to the list, or you will receive
-    notification of the moderator's decision.  If you would like to cancel
-    this posting, please visit the following URL:
-    <BLANKLINE>
-        http://lists.example.com/confirm/test@example.com/...
-    <BLANKLINE>
-    <BLANKLINE>
-
-In addition, the pending database is holding the original messages, waiting
-for them to be disposed of by the original author or the list moderators.  The
-database is essentially a dictionary, with the keys being the randomly
-selected tokens included in the urls and the values being a 2-tuple where the
-first item is a type code and the second item is a message id.
-::
-
-    >>> import re
-    >>> cookie = None
-    >>> for line in messages[1].get_payload().splitlines():
-    ...     mo = re.search('confirm/[^/]+/(?P<cookie>.*)$', line)
-    ...     if mo:
-    ...         cookie = mo.group('cookie')
-    ...         break
-    >>> assert cookie is not None, 'No confirmation token found'
-
-    >>> from mailman.interfaces.pending import IPendings
-    >>> from zope.component import getUtility
-
-    >>> data = getUtility(IPendings).confirm(cookie)
-    >>> dump_msgdata(data)
-    id  : 1
-    type: held message
-
-The message itself is held in the message store.
-::
-
-    >>> from mailman.interfaces.requests import IListRequests
-    >>> list_requests = IListRequests(mlist)
-    >>> rkey, rdata = list_requests.get_request(data['id'])
-
-    >>> from mailman.interfaces.messages import IMessageStore
-    >>> from zope.component import getUtility
-    >>> msg = getUtility(IMessageStore).get_message_by_id(
-    ...     rdata['_mod_message_id'])
-
-    >>> print(msg.as_string())
-    From: aperson@example.com
-    To: test@example.com
-    Subject: My first post
-    Message-ID: <first>
-    X-Message-ID-Hash: RXJU4JL6N2OUN3OYMXXPPSCR7P7JE2BW
-    <BLANKLINE>
-    An important message.
-    <BLANKLINE>
+    notification of the moderator's decision.
 
 
 The Accept chain
