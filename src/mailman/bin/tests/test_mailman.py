@@ -25,8 +25,8 @@ __all__ = [
 import unittest
 
 from io import StringIO
-from mock import patch
 from mailman.bin.mailman import main
+from unittest.mock import patch
 
 
 

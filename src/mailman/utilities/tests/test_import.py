@@ -29,7 +29,6 @@ __all__ = [
 
 
 import os
-import mock
 import unittest
 
 from datetime import timedelta, datetime
@@ -56,6 +55,7 @@ from mailman.utilities.importer import import_config_pck, Import21Error
 from mailman.utilities.string import expand
 from pickle import load
 from pkg_resources import resource_filename
+from unittest import mock
 from zope.component import getUtility
 
 

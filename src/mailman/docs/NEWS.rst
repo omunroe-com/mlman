@@ -43,6 +43,7 @@ Bugs
    backported smtpd module which can accept non-UTF-8 data.  (Closes #140)
  * Bulk emails are now decorated with headers and footers.  Given by Aurélien
    Bompard.  (Closes #145)
+ * Core no longer depends on the standalone `mock` module.  (Closes: #146)
 
 
 3.0.0 -- "Show Don't Tell"

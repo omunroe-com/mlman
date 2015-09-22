@@ -25,7 +25,6 @@ __all__ = [
 
 
 import os
-import mock
 import tempfile
 import unittest
 
@@ -37,6 +36,7 @@ from mailman.interfaces.configuration import (
 from mailman.testing.helpers import configuration, event_subscribers
 from mailman.testing.layers import ConfigLayer
 from pkg_resources import resource_filename
+from unittest import mock
 
 
 

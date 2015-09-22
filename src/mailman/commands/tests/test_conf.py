@@ -24,13 +24,13 @@ __all__ = [
 
 import os
 import sys
-import mock
 import tempfile
 import unittest
 
 from io import StringIO
 from mailman.commands.cli_conf import Conf
 from mailman.testing.layers import ConfigLayer
+from unittest import mock
 
 
 

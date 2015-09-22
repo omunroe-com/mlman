@@ -31,10 +31,10 @@ from mailman.database.factory import LAST_STORM_SCHEMA_VERSION, SchemaManager
 from mailman.database.model import Model
 from mailman.interfaces.database import DatabaseError
 from mailman.testing.layers import ConfigLayer
-from mock import patch
 from sqlalchemy import MetaData, Table, Column, Integer, Unicode
 from sqlalchemy.exc import ProgrammingError, OperationalError
 from sqlalchemy.schema import Index
+from unittest.mock import patch
 
 
 
