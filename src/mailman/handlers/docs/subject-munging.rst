@@ -83,6 +83,20 @@ where it will stay.
     >>> print(msg['subject'])
     [XTest] Re: Something important
 
+Sometimes the incoming ``Subject`` header has a pathological sequence of
+``Re:`` like markers. These should all be collapsed up to the first non-``Re:``
+marker.
+
+    >>> msg = message_from_string("""\
+    ... From: aperson@example.com
+    ... Subject: [XTest] Re: RE : Re: Re: Re: Re: Re: Something important
+    ...
+    ... A message of great import.
+    ... """)
+    >>> process(mlist, msg, {})
+    >>> print(msg['subject'])
+    [XTest] Re: Something important
+
 
 Internationalized headers
 =========================
@@ -207,10 +221,8 @@ And again, with an RFC 2047 encoded header.
     ...
     ... """)
     >>> process(mlist, msg, {})
+    >>> print(msg['subject'].encode())
+    [XTest] =?iso-2022-jp?b?GyRCJWEhPCVrJV4lcxsoQg==?=
+    >>> print(msg['subject'])
+    [XTest]  メールマン
 
-..
- # XXX This one does not appear to work the same way as
- # test_subject_munging_prefix_crooked() in the old Python-based tests.  I need
- # to get Tokio to look at this.
- #    >>> print(msg['subject'])
- #    [XTest] =?iso-2022-jp?b?IBskQiVhITwlayVeJXMbKEI=?=

@@ -30,7 +30,7 @@ from mailman.interfaces.handler import IHandler
 from zope.interface import implementer
 
 
-RE_PATTERN = '((RE|AW|SV|VS)(\[\d+\])?:\s*)+'
+RE_PATTERN = '\s*((RE|AW|SV|VS)(\[\d+\])?\s*:\s*)+'
 ASCII_CHARSETS = (None, 'ascii', 'us-ascii')
 EMPTYSTRING = ''
 
@@ -43,12 +43,6 @@ def ascii_header(mlist, msgdata, subject, prefix, prefix_pattern, ws):
         if charset not in ASCII_CHARSETS:
             return None
     subject_text = EMPTYSTRING.join(str(subject).splitlines())
-    rematch = re.match(RE_PATTERN, subject_text, re.I)
-    if rematch:
-        subject_text = subject_text[rematch.end():]
-        recolon = 'Re: '
-    else:
-        recolon = ''
     # At this point, the subject may become null if someone posted mail
     # with "Subject: [subject prefix]".
     if subject_text.strip() == '':
@@ -57,6 +51,12 @@ def ascii_header(mlist, msgdata, subject, prefix, prefix_pattern, ws):
     else:
         subject_text = re.sub(prefix_pattern, '', subject_text)
     msgdata['stripped_subject'] = subject_text
+    rematch = re.match(RE_PATTERN, subject_text, re.I)
+    if rematch:
+        subject_text = subject_text[rematch.end():]
+        recolon = 'Re: '
+    else:
+        recolon = ''
     lines = subject_text.splitlines()
     first_line = [lines[0]]
     if recolon:
@@ -77,12 +77,6 @@ def all_same_charset(mlist, msgdata, subject, prefix, prefix_pattern, ws):
         if charset != list_charset:
             return None
     subject_text = EMPTYSTRING.join(chunks)
-    rematch = re.match(RE_PATTERN, subject_text, re.I)
-    if rematch:
-        subject_text = subject_text[rematch.end():]
-        recolon = 'Re: '
-    else:
-        recolon = ''
     # At this point, the subject may become null if someone posted mail
     # with "Subject: [subject prefix]".
     if subject_text.strip() == '':
@@ -91,6 +85,12 @@ def all_same_charset(mlist, msgdata, subject, prefix, prefix_pattern, ws):
     else:
         subject_text = re.sub(prefix_pattern, '', subject_text)
     msgdata['stripped_subject'] = subject_text
+    rematch = re.match(RE_PATTERN, subject_text, re.I)
+    if rematch:
+        subject_text = subject_text[rematch.end():]
+        recolon = 'Re: '
+    else:
+        recolon = ''
     lines = subject_text.splitlines()
     first_line = [lines[0]]
     if recolon:
