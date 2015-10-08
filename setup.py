@@ -107,5 +107,4 @@ case second `m'.  Any other spelling is incorrect.""",
         'zope.event',
         'zope.interface',
         ],
-    test_suite = 'nose2.collector.collector',
     )

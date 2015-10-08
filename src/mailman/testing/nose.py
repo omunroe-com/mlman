@@ -25,17 +25,17 @@ __all__ = [
 import os
 import re
 import doctest
-import mailman
 import importlib
 
 from mailman.testing.documentation import setup, teardown
 from mailman.testing.layers import ConfigLayer, MockAndMonkeyLayer, SMTPLayer
 from nose2.events import Plugin
+from pkg_resources import resource_filename
 
 
 DOT = '.'
 FLAGS = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE | doctest.REPORT_NDIFF
-TOPDIR = os.path.dirname(mailman.__file__)
+TOPDIR = os.path.dirname(resource_filename('mailman', '__init__.py'))
 
 
 
