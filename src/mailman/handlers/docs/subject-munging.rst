@@ -225,4 +225,3 @@ And again, with an RFC 2047 encoded header.
     [XTest] =?iso-2022-jp?b?GyRCJWEhPCVrJV4lcxsoQg==?=
     >>> print(msg['subject'])
     [XTest]  メールマン
-

@@ -47,6 +47,8 @@ Bugs
  * Fix the logging of moderation reasons.  Given by Aurélien Bompard.  Also,
    update the postauth.txt and postheld.txt templates to not include the bogus
    URLs, and to include the translated moderation reasons.
+ * Collapse multiple ``Re:`` in Subject headers.  Given by Mark Sapiro.
+   (Closes: #147)
 
 
 3.0.0 -- "Show Don't Tell"
