@@ -49,6 +49,7 @@ Bugs
    URLs, and to include the translated moderation reasons.
  * Collapse multiple ``Re:`` in Subject headers.  Given by Mark Sapiro.
    (Closes: #147)
+ * Added Trove classifiers to setup.py.  (Closes: #152)
 
 
 3.0.0 -- "Show Don't Tell"
