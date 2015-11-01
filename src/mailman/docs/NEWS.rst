@@ -16,9 +16,6 @@ Bugs
 ----
  * When the mailing list's `admin_notify_mchanges` is True, the list owners
    now get the subscription notification.  (Closes: #1)
- * When `pip` installing Mailman into `/usr/local`, the `master` script is
-   searched for relative to several landmark locations.  Originally given by
-   Sambuddha Basu, adapted by Barry Warsaw. (Closes: #3)
  * Fix the traceback that occurred when trying to convert a `text/html`
    subpart to plaintext via the `mimedel` handler.  Now, a configuration
    variable `[mailman]html_to_plain_text_command` in the `mailman.cfg` file

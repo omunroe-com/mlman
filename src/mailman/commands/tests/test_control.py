@@ -18,6 +18,7 @@
 """Test some additional corner cases for starting/stopping."""
 
 __all__ = [
+    'TestBinDir',
     'TestStart',
     'find_master',
     'make_config',
@@ -33,10 +34,13 @@ import shutil
 import socket
 import unittest
 
+from contextlib import ExitStack
 from datetime import timedelta, datetime
 from mailman.commands.cli_control import Start, kill_watcher
-from mailman.config import config
+from mailman.config import Configuration, config
+from mailman.testing.helpers import configuration
 from mailman.testing.layers import ConfigLayer
+from tempfile import TemporaryDirectory
 
 
 SEP = '|'
@@ -159,3 +163,54 @@ class TestStart(unittest.TestCase):
         self.command.process(self.args)
         pid = find_master()
         self.assertNotEqual(pid, None)
+
+
+
+class TestBinDir(unittest.TestCase):
+    """Test issues related to bin_dir, e.g. issue #3"""
+
+    layer = ConfigLayer
+
+    def setUp(self):
+        self.command = Start()
+        self.command.parser = FakeParser()
+        self.args = FakeArgs()
+        self.args.config = make_config()
+
+    def test_master_is_elsewhere(self):
+        with ExitStack() as resources:
+            # Patch os.fork() so that we can record the failing child process's
+            # id.  We need to wait on the child exiting in either case, and
+            # when it fails, no master.pid will be written.
+            bin_dir = resources.enter_context(TemporaryDirectory())
+            old_master = os.path.join(config.BIN_DIR, 'master')
+            new_master = os.path.join(bin_dir, 'master')
+            shutil.move(old_master, new_master)
+            resources.callback(shutil.move, new_master, old_master)
+            # Starting mailman should fail because 'master' can't be found.
+            # XXX This will print Errno 2 on the console because we're not
+            # silencing the child process's stderr.
+            self.command.process(self.args)
+            # There should be no pid file.
+            args_config = Configuration()
+            args_config.load(self.args.config)
+            self.assertFalse(os.path.exists(args_config.PID_FILE))
+            os.wait()
+
+    def test_master_is_elsewhere_and_findable(self):
+        with ExitStack() as resources:
+            bin_dir = resources.enter_context(TemporaryDirectory())
+            old_master = os.path.join(config.BIN_DIR, 'master')
+            new_master = os.path.join(bin_dir, 'master')
+            shutil.move(old_master, new_master)
+            resources.enter_context(
+                configuration('paths.testing', bin_dir=bin_dir))
+            resources.callback(shutil.move, new_master, old_master)
+            # Starting mailman should find master in the new bin_dir.
+            self.command.process(self.args)
+            # There should a pid file and the process it describes should be
+            # killable.  We might have to wait until the process has started.
+            master_pid = find_master()
+            self.assertIsNotNone(master_pid, 'master did not start')
+            os.kill(master_pid, signal.SIGTERM)
+            os.waitpid(master_pid, 0)

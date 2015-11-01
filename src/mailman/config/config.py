@@ -134,20 +134,8 @@ class Configuration:
 
     def _expand_paths(self):
         """Expand all configuration paths."""
-        # First we need to locate the bin directory.  This can differ in
-        # several cases, such as, if we're installing into a virtual
-        # environment, /usr/bin, /usr/local/bin, or running the test suite.
-        # We'll try some common locations, looking for a landmark.  First
-        # location wins.
-        for origin in (sys.executable, sys.argv[0]):
-            bin_dir = os.path.abspath(os.path.dirname(origin))
-            # Search for 'master' in this directory, since that's the thing we
-            # actually need to be able to run.
-            if os.path.exists(os.path.join(bin_dir, 'master')):
-                break
-        else:
-            print("Could not find the 'master' script", file=sys.stderr)
-            sys.exit(1)
+        # Set up directories.
+        default_bin_dir = os.path.abspath(os.path.dirname(sys.executable))
         # Now that we've loaded all the configuration files we're going to
         # load, set up some useful directories based on the settings in the
         # configuration file.
@@ -168,7 +156,7 @@ class Configuration:
         var_dir = os.environ.get('MAILMAN_VAR_DIR', category.var_dir)
         substitutions = dict(
             cwd                     = os.getcwd(),
-            argv                    = bin_dir,
+            argv                    = default_bin_dir,
             # Directories.
             bin_dir                 = category.bin_dir,
             data_dir                = category.data_dir,
