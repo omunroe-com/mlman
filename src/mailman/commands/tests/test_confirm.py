@@ -19,6 +19,7 @@
 
 __all__ = [
     'TestConfirm',
+    'TestEmailResponses',
     ]
 
 
@@ -26,12 +27,14 @@ import unittest
 
 from mailman.app.lifecycle import create_list
 from mailman.commands.eml_confirm import Confirm
+from mailman.config import config
 from mailman.email.message import Message
 from mailman.interfaces.command import ContinueProcessing
+from mailman.interfaces.mailinglist import SubscriptionPolicy
 from mailman.interfaces.registrar import IRegistrar
 from mailman.interfaces.usermanager import IUserManager
-from mailman.runners.command import Results
-from mailman.testing.helpers import get_queue_messages
+from mailman.runners.command import CommandRunner, Results
+from mailman.testing.helpers import get_queue_messages, make_testable_runner
 from mailman.testing.layers import ConfigLayer
 from zope.component import getUtility
 
@@ -76,3 +79,82 @@ class TestConfirm(unittest.TestCase):
         # There will be no messages in the queue.
         messages = get_queue_messages('virgin')
         self.assertEqual(len(messages), 0)
+
+
+class TestEmailResponses(unittest.TestCase):
+    """Test the `confirm` command through the command runner."""
+
+    layer = ConfigLayer
+
+    def setUp(self):
+        self._mlist = create_list('test@example.com')
+
+    def test_confirm_then_moderate_workflow(self):
+        # Issue #114 describes a problem when confirming the moderation email.
+        self._mlist.subscription_policy = \
+            SubscriptionPolicy.confirm_then_moderate
+        bart = getUtility(IUserManager).create_address(
+            'bart@example.com', 'Bart Person')
+        # Clear any previously queued confirmation messages.
+        get_queue_messages('virgin')
+        self._token, token_owner, member = IRegistrar(self._mlist).register(
+            bart)
+        # There should now be one email message in the virgin queue, i.e. the
+        # confirmation message sent to Bart.
+        items = get_queue_messages('virgin')
+        self.assertEqual(len(items), 1)
+        msg = items[0].msg
+        # Confirmations come first, so this one goes to the subscriber.
+        self.assertEqual(msg['to'], 'bart@example.com')
+        confirm, token = str(msg['subject']).split()
+        self.assertEqual(confirm, 'confirm')
+        self.assertEqual(token, self._token)
+        # Craft a confirmation response with the expected tokens.
+        user_response = Message()
+        user_response['From'] = 'bart@example.com'
+        user_response['To'] = 'test-confirm+{}@example.com'.format(token)
+        user_response['Subject'] = 'Re: confirm {}'.format(token)
+        user_response.set_payload('')
+        # Process the message through the command runner.
+        config.switchboards['command'].enqueue(
+            user_response, listid='test.example.com')
+        make_testable_runner(CommandRunner, 'command').run()
+        # There are now two messages in the virgin queue.  One is going to the
+        # subscriber containing the results of their confirmation message, and
+        # the other is to the moderators informing them that they need to
+        # handle the moderation queue.
+        items = get_queue_messages('virgin')
+        self.assertEqual(len(items), 2)
+        if items[0].msg['to'] == 'bart@example.com':
+            results = items[0].msg
+            moderator_msg = items[1].msg
+        else:
+            results = items[1].msg
+            moderator_msg = items[0].msg
+        # Check the moderator message first.
+        self.assertEqual(moderator_msg['to'], 'test-owner@example.com')
+        self.assertEqual(
+            moderator_msg['subject'],
+            'New subscription request to Test from bart@example.com')
+        lines = moderator_msg.get_payload().splitlines()
+        self.assertEqual(
+            lines[-2].strip(),
+            'For:  Bart Person <bart@example.com>')
+        self.assertEqual(lines[-1].strip(), 'List: test@example.com')
+        # Now check the results message.
+        self.assertEqual(
+            str(results['subject']), 'The results of your email commands')
+        self.assertMultiLineEqual(results.get_payload(), """\
+The results of your email command are provided below.
+
+- Original message details:
+From: bart@example.com
+Subject: Re: confirm {}
+Date: n/a
+Message-ID: n/a
+
+- Results:
+Confirmed
+
+- Done.
+""".format(token))

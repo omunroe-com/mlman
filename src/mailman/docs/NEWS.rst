@@ -50,6 +50,8 @@ Bugs
  * Collapse multiple ``Re:`` in Subject headers.  Given by Mark Sapiro.
    (Closes: #147)
  * Added Trove classifiers to setup.py.  (Closes: #152)
+ * Fix the processing of subscription confirmation messages when the mailing
+   list is set to confirm-then-moderate.  (Closes #114)
 
 
 3.0.0 -- "Show Don't Tell"

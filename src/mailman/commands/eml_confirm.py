@@ -54,10 +54,15 @@ class Confirm:
         tokens.add(token)
         results.confirms = tokens
         try:
-            token, token_owner, member = IRegistrar(mlist).confirm(token)
-            if token is None:
+            new_token, token_owner, member = IRegistrar(mlist).confirm(token)
+            if new_token is None:
                 assert token_owner is TokenOwner.no_one, token_owner
                 assert member is not None, member
+                succeeded = True
+            elif token_owner is TokenOwner.moderator:
+                # This must have been a confirm-then-moderator subscription.
+                assert new_token != token
+                assert member is None, member
                 succeeded = True
             else:
                 assert token_owner is not TokenOwner.no_one, token_owner
