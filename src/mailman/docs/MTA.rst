@@ -248,7 +248,7 @@ installation.
     # matching list addresses)
     MM3_LISTCHK=MM3_HOME/lists/${local_part}@${domain}
 
-    # /etc/exim4/conf.d/main/455_mm3_router
+    # /etc/exim4/conf.d/router/455_mm3_router
     mailman3_router:
       driver = accept
       domains = +mm_domains
@@ -262,7 +262,7 @@ installation.
          -subscribe : -unsubscribe
       transport = mailman3_transport
 
-    # /etc/exim4/conf.d/main/55_mm3_transport
+    # /etc/exim4/conf.d/transport/55_mm3_transport
     mailman3_transport:
       driver = smtp
       protocol = lmtp
