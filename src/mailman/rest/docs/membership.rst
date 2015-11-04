@@ -267,7 +267,7 @@ page.
         user: http://localhost:9001/3.0/users/3
     http_etag: ...
     start: 0
-    total_size: 1
+    total_size: 2
 
 This works with members of a single list as well as with all members.
 
@@ -285,7 +285,7 @@ This works with members of a single list as well as with all members.
         user: http://localhost:9001/3.0/users/3
     http_etag: ...
     start: 0
-    total_size: 1
+    total_size: 5
 
 
 Owners and moderators

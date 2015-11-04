@@ -38,7 +38,7 @@ from mailman.interfaces.user import IUser, UnverifiedAddressError
 from mailman.interfaces.usermanager import IUserManager
 from mailman.rest.helpers import (
     CollectionMixin, NotFound, accepted, bad_request, child, conflict,
-    created, etag, no_content, not_found, okay, paginate, path_to)
+    created, etag, no_content, not_found, okay, path_to)
 from mailman.rest.preferences import Preferences, ReadOnlyPreferences
 from mailman.rest.validator import (
     Validator, enum_validator, subscriber_validator)
@@ -76,7 +76,6 @@ class _MemberBase(CollectionMixin):
             response['user'] = path_to('users/{}'.format(user.user_id.int))
         return response
 
-    @paginate
     def _get_collection(self, request):
         """See `CollectionMixin`."""
         return list(getUtility(ISubscriptionService))

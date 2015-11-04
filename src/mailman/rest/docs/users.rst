@@ -84,7 +84,7 @@ page.
         user_id: 1
     http_etag: "..."
     start: 0
-    total_size: 1
+    total_size: 2
 
     >>> dump_json('http://localhost:9001/3.0/users?count=1&page=2')
     entry 0:
@@ -94,8 +94,8 @@ page.
         self_link: http://localhost:9001/3.0/users/2
         user_id: 2
     http_etag: "..."
-    start: 0
-    total_size: 1
+    start: 1
+    total_size: 2
 
 
 Creating users

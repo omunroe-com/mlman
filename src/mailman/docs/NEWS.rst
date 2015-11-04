@@ -49,6 +49,8 @@ Bugs
  * Added Trove classifiers to setup.py.  (Closes: #152)
  * Fix the processing of subscription confirmation messages when the mailing
    list is set to confirm-then-moderate.  (Closes #114)
+ * Fix pagination values `start` and `total_size` in the REST API.  Given by
+   Aurélien Bompard.  (Closes: #154)
 
 
 3.0.0 -- "Show Don't Tell"

@@ -27,7 +27,7 @@ import unittest
 from falcon import HTTPInvalidParam, Request
 from mailman.app.lifecycle import create_list
 from mailman.database.transaction import transaction
-from mailman.rest.helpers import paginate
+from mailman.rest.helpers import CollectionMixin
 from mailman.testing.layers import RESTLayer
 
 
@@ -51,79 +51,84 @@ class TestPaginateHelper(unittest.TestCase):
         with transaction():
             self._mlist = create_list('test@example.com')
 
+    def _get_resource(self):
+        class Resource(CollectionMixin):
+            def _get_collection(self, request):
+                return ['one', 'two', 'three', 'four', 'five']
+            def _resource_as_dict(self, res):
+                return {'value': res}
+        return Resource()
+
     def test_no_pagination(self):
         # When there is no pagination params in the request, all 5 items in
         # the collection are returned.
-        @paginate
-        def get_collection(self, request):
-            return ['one', 'two', 'three', 'four', 'five']
+        resource = self._get_resource()
         # Expect 5 items
-        page = get_collection(None, _FakeRequest())
-        self.assertEqual(page, ['one', 'two', 'three', 'four', 'five'])
+        page = resource._make_collection(_FakeRequest())
+        self.assertEqual(page['start'], 0)
+        self.assertEqual(page['total_size'], 5)
+        self.assertEqual(
+            [entry['value'] for entry in page['entries']],
+            ['one', 'two', 'three', 'four', 'five'])
 
     def test_valid_pagination_request_page_one(self):
         # ?count=2&page=1 returns the first page, with two items in it.
-        @paginate
-        def get_collection(self, request):
-            return ['one', 'two', 'three', 'four', 'five']
-        page = get_collection(None, _FakeRequest(2, 1))
-        self.assertEqual(page, ['one', 'two'])
+        resource = self._get_resource()
+        page = resource._make_collection(_FakeRequest(2, 1))
+        self.assertEqual(page['start'], 0)
+        self.assertEqual(page['total_size'], 5)
+        self.assertEqual(
+            [entry['value'] for entry in page['entries']], ['one', 'two'])
 
     def test_valid_pagination_request_page_two(self):
         # ?count=2&page=2 returns the second page, where a page has two items
         # in it.
-        @paginate
-        def get_collection(self, request):
-            return ['one', 'two', 'three', 'four', 'five']
-        page = get_collection(None, _FakeRequest(2, 2))
-        self.assertEqual(page, ['three', 'four'])
+        resource = self._get_resource()
+        page = resource._make_collection(_FakeRequest(2, 2))
+        self.assertEqual(page['start'], 2)
+        self.assertEqual(page['total_size'], 5)
+        self.assertEqual(
+            [entry['value'] for entry in page['entries']], ['three', 'four'])
 
     def test_2nd_index_larger_than_total(self):
         # ?count=2&page=3 returns the third page with page size 2, but the
         # last page only has one item in it.
-        @paginate
-        def get_collection(self, request):
-            return ['one', 'two', 'three', 'four', 'five']
-        page = get_collection(None, _FakeRequest(2, 3))
-        self.assertEqual(page, ['five'])
+        resource = self._get_resource()
+        page = resource._make_collection(_FakeRequest(2, 3))
+        self.assertEqual(page['start'], 4)
+        self.assertEqual(page['total_size'], 5)
+        self.assertEqual(
+            [entry['value'] for entry in page['entries']], ['five'])
 
     def test_out_of_range_returns_empty_list(self):
         # ?count=2&page=4 returns the fourth page, which doesn't exist, so an
         # empty collection is returned.
-        @paginate
-        def get_collection(self, request):
-            return ['one', 'two', 'three', 'four', 'five']
-        page = get_collection(None, _FakeRequest(2, 4))
-        self.assertEqual(page, [])
+        resource = self._get_resource()
+        page = resource._make_collection(_FakeRequest(2, 4))
+        self.assertEqual(page['start'], 6)
+        self.assertEqual(page['total_size'], 5)
+        self.assertNotIn('entries', page)
 
     def test_count_as_string_returns_bad_request(self):
         # ?count=two&page=2 are not valid values, so a bad request occurs.
-        @paginate
-        def get_collection(self, request):
-            return []
-        self.assertRaises(HTTPInvalidParam, get_collection,
-                          None, _FakeRequest('two', 1))
+        resource = self._get_resource()
+        self.assertRaises(HTTPInvalidParam, resource._make_collection,
+                          _FakeRequest('two', 1))
 
     def test_negative_count(self):
         # ?count=-1&page=1
-        @paginate
-        def get_collection(self, request):
-            return ['one', 'two', 'three', 'four', 'five']
-        self.assertRaises(HTTPInvalidParam, get_collection,
-                          None, _FakeRequest(-1, 1))
+        resource = self._get_resource()
+        self.assertRaises(HTTPInvalidParam, resource._make_collection,
+                          _FakeRequest(-1, 1))
 
     def test_negative_page(self):
         # ?count=1&page=-1
-        @paginate
-        def get_collection(self, request):
-            return ['one', 'two', 'three', 'four', 'five']
-        self.assertRaises(HTTPInvalidParam, get_collection,
-                          None, _FakeRequest(1, -1))
+        resource = self._get_resource()
+        self.assertRaises(HTTPInvalidParam, resource._make_collection,
+                          _FakeRequest(1, -1))
 
     def test_negative_page_and_count(self):
         # ?count=1&page=-1
-        @paginate
-        def get_collection(self, request):
-            return ['one', 'two', 'three', 'four', 'five']
-        self.assertRaises(HTTPInvalidParam, get_collection,
-                          None, _FakeRequest(-1, -1))
+        resource = self._get_resource()
+        self.assertRaises(HTTPInvalidParam, resource._make_collection,
+                          _FakeRequest(-1, -1))

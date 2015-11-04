@@ -76,7 +76,7 @@ page.
         volume: 1
     http_etag: "..."
     start: 0
-    total_size: 1
+    total_size: 2
 
     >>> dump_json('http://localhost:9001/3.0/domains/example.com/lists'
     ...           '?count=1&page=2')
@@ -91,8 +91,8 @@ page.
         self_link: http://localhost:9001/3.0/lists/bird.example.com
         volume: 1
     http_etag: "..."
-    start: 0
-    total_size: 1
+    start: 1
+    total_size: 2
 
 
 Creating lists via the API

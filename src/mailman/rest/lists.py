@@ -40,7 +40,7 @@ from mailman.interfaces.subscriptions import ISubscriptionService
 from mailman.rest.listconf import ListConfiguration
 from mailman.rest.helpers import (
     CollectionMixin, GetterSetter, NotFound, bad_request, child, created,
-    etag, no_content, not_found, okay, paginate, path_to)
+    etag, no_content, not_found, okay, path_to)
 from mailman.rest.members import AMember, MemberCollection
 from mailman.rest.post_moderation import HeldMessages
 from mailman.rest.sub_moderation import SubscriptionRequests
@@ -112,7 +112,6 @@ class _ListBase(CollectionMixin):
             self_link=path_to('lists/{0}'.format(mlist.list_id)),
             )
 
-    @paginate
     def _get_collection(self, request):
         """See `CollectionMixin`."""
         return list(getUtility(IListManager))
@@ -230,7 +229,6 @@ class MembersOfList(MemberCollection):
         self._mlist = mailing_list
         self._role = role
 
-    @paginate
     def _get_collection(self, request):
         """See `CollectionMixin`."""
         # Overrides _MemberBase._get_collection() because we only want to
@@ -251,7 +249,6 @@ class ListsForDomain(_ListBase):
         resource = self._make_collection(request)
         okay(response, etag(resource))
 
-    @paginate
     def _get_collection(self, request):
         """See `CollectionMixin`."""
         return list(self._domain.mailing_lists)

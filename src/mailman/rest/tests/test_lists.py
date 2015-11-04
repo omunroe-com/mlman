@@ -287,7 +287,7 @@ class TestListPagination(unittest.TestCase):
             'http://localhost:9001/3.0/domains/example.com/lists'
             '?count=1&page=1')
         # There are 6 total lists, but only the first one in the page.
-        self.assertEqual(resource['total_size'], 1)
+        self.assertEqual(resource['total_size'], 6)
         self.assertEqual(resource['start'], 0)
         self.assertEqual(len(resource['entries']), 1)
         entry = resource['entries'][0]
@@ -298,8 +298,8 @@ class TestListPagination(unittest.TestCase):
             'http://localhost:9001/3.0/domains/example.com/lists'
             '?count=1&page=2')
         # There are 6 total lists, but only the first one in the page.
-        self.assertEqual(resource['total_size'], 1)
-        self.assertEqual(resource['start'], 0)
+        self.assertEqual(resource['total_size'], 6)
+        self.assertEqual(resource['start'], 1)
         self.assertEqual(len(resource['entries']), 1)
         entry = resource['entries'][0]
         self.assertEqual(entry['fqdn_listname'], 'bee@example.com')
@@ -309,8 +309,8 @@ class TestListPagination(unittest.TestCase):
             'http://localhost:9001/3.0/domains/example.com/lists'
             '?count=1&page=6')
         # There are 6 total lists, but only the first one in the page.
-        self.assertEqual(resource['total_size'], 1)
-        self.assertEqual(resource['start'], 0)
+        self.assertEqual(resource['total_size'], 6)
+        self.assertEqual(resource['start'], 5)
         self.assertEqual(len(resource['entries']), 1)
         entry = resource['entries'][0]
         self.assertEqual(entry['fqdn_listname'], 'fly@example.com')
@@ -337,6 +337,6 @@ class TestListPagination(unittest.TestCase):
             'http://localhost:9001/3.0/domains/example.com/lists'
             '?count=1&page=7')
         # There are 6 total lists, but only the first one in the page.
-        self.assertEqual(resource['total_size'], 0)
-        self.assertEqual(resource['start'], 0)
+        self.assertEqual(resource['total_size'], 6)
+        self.assertEqual(resource['start'], 6)
         self.assertNotIn('entries', resource)
