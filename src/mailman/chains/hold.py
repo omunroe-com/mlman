@@ -165,7 +165,12 @@ class HoldChain(TerminalChainBase):
         if original_subject is None:
             original_subject = _('(no subject)')
         else:
-            original_subject = oneline(original_subject, in_unicode=True)
+            # This must be encoded to the mailing list's perferred charset,
+            # ignoring incompatible characters, otherwise when creating the
+            # notification messages, we could get a Unicode error.
+            oneline_subject = oneline(original_subject, in_unicode=True)
+            bytes_subject = oneline_subject.encode(charset, 'replace')
+            original_subject = bytes_subject.decode(charset)
         substitutions = dict(
             listname    = mlist.fqdn_listname,
             subject     = original_subject,

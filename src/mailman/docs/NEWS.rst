@@ -51,7 +51,8 @@ Bugs
    list is set to confirm-then-moderate.  (Closes #114)
  * Fix pagination values `start` and `total_size` in the REST API.  Given by
    Aurélien Bompard.  (Closes: #154)
-
+ * Fix ``UnicodeEncodeError`` in the hold chain when sending the authorization
+   email to the mailing list moderators.  (Closes: #144)
 
 3.0.0 -- "Show Don't Tell"
 ==========================

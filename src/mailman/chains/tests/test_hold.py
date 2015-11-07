@@ -24,6 +24,7 @@ __all__ = [
 
 import unittest
 
+from email import message_from_bytes as mfb
 from mailman.app.lifecycle import create_list
 from mailman.chains.hold import autorespond_to_sender
 from mailman.core.chains import process as process_chain
@@ -33,6 +34,7 @@ from mailman.testing.helpers import (
     LogFileMark, configuration, get_queue_messages,
     specialized_message_from_string as mfs)
 from mailman.testing.layers import ConfigLayer
+from pkg_resources import resource_filename
 from zope.component import getUtility
 
 
@@ -134,3 +136,31 @@ A message body.
         logged = logfile.read()
         self.assertIn('TEST-REASON-1', logged)
         self.assertIn('TEST-REASON-2', logged)
+
+    def test_hold_chain_charset(self):
+        # Issue #144 - UnicodeEncodeError in the hold chain.
+        self._mlist.admin_immed_notify = True
+        self._mlist.respond_to_post_requests = False
+        path = resource_filename('mailman.chains.tests', 'issue144.eml')
+        with open(path, 'rb') as fp:
+            msg = mfb(fp.read())
+        msg.sender = 'anne@example.com'
+        process_chain(self._mlist, msg, {}, start_chain='hold')
+        # The postauth.txt message is now in the virgin queue awaiting
+        # delivery to the moderators.
+        items = get_queue_messages('virgin')
+        self.assertEqual(len(items), 1)
+        msgdata = items[0].msgdata
+        self.assertTrue(msgdata['tomoderators'])
+        self.assertEqual(msgdata['recipients'], {'test-owner@example.com'})
+        # Ensure that the subject looks correct in the postauth.txt.
+        msg = items[0].msg
+        value = None
+        for line in msg.get_payload(0).get_payload().splitlines():
+            if line.strip().startswith('Subject:'):
+                header, colon, value = line.partition(':')
+                break
+        self.assertEqual(value.lstrip(), 'Vi?enamjenski pi?tolj za vodu 8/1')
+        self.assertEqual(
+            msg['Subject'],
+            'test@example.com post from anne@example.com requires approval')
