@@ -4,7 +4,7 @@ recursive-include .buildout *
 recursive-include contrib *
 recursive-include cron *
 recursive-include data *
-global-include *.txt *.rst *.po *.mo *.cfg *.sql *.zcml *.html *.ini
+global-include *.txt *.rst *.po *.mo *.cfg *.sql *.zcml *.html *.ini *.eml
 global-exclude *.egg-info
 prune src/attic
 prune src/web
