@@ -31,10 +31,10 @@ FINAL = 0xf
 
 MAJOR_REV = 3
 MINOR_REV = 0
-MICRO_REV = 0
+MICRO_REV = 1
 REL_LEVEL = FINAL
 # At most 15 beta releases!
-REL_SERIAL = 1
+REL_SERIAL = 0
 
 HEX_VERSION = ((MAJOR_REV << 24) | (MINOR_REV << 16) | (MICRO_REV << 8) |
                (REL_LEVEL << 4)  | (REL_SERIAL << 0))
