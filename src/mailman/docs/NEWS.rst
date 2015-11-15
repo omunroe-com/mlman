@@ -8,6 +8,11 @@ Copyright (C) 1998-2015 by the Free Software Foundation, Inc.
 Here is a history of user visible changes to Mailman.
 
 
+3.0.2 -- "Show Don't Tell"
+==========================
+(201X-XX-XX)
+
+
 3.0.1 -- "Show Don't Tell"
 ==========================
 (2015-11-13)
