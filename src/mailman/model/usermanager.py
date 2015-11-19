@@ -26,6 +26,8 @@ from mailman.database.transaction import dbconnection
 from mailman.interfaces.address import ExistingAddressError
 from mailman.interfaces.usermanager import IUserManager
 from mailman.model.address import Address
+from mailman.model.autorespond import AutoResponseRecord
+from mailman.model.digests import OneLastDigest
 from mailman.model.member import Member
 from mailman.model.preferences import Preferences
 from mailman.model.user import User
@@ -69,6 +71,15 @@ class UserManager:
     @dbconnection
     def delete_user(self, store, user):
         """See `IUserManager`."""
+        # SQLAlchemy is susceptable to delete-elements-while-iterating bugs so
+        # first figure out all the addresses we want to delete, then in a
+        # separate pass, delete those addresses.  (See LP: #1419519)
+        to_delete = list(user.addresses)
+        for address in to_delete:
+            self.delete_address(address)
+        # Remove memberships.
+        for membership in store.query(Member).filter_by(user_id=user.id):
+            membership.unsubscribe()
         store.delete(user.preferences)
         store.delete(user)
 
@@ -119,6 +130,14 @@ class UserManager:
         # unlinked before the address can be deleted.
         if address.user:
             address.user.unlink(address)
+        # Remove memberships.
+        for membership in store.query(Member).filter_by(address_id=address.id):
+            membership.unsubscribe()
+        # Remove auto-response records.
+        store.query(AutoResponseRecord).filter_by(address=address).delete()
+        # Remove last digest record.
+        store.query(OneLastDigest).filter_by(address=address).delete()
+        # Now delete the address.
         store.delete(address)
 
     @dbconnection

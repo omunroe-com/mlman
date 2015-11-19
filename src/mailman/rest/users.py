@@ -210,12 +210,6 @@ class AUser(_UserBase):
         for member in self._user.memberships.members:
             member.unsubscribe()
         user_manager = getUtility(IUserManager)
-        # SQLAlchemy is susceptable to delete-elements-while-iterating bugs so
-        # first figure out all the addresses we want to delete, then in a
-        # separate pass, delete those addresses.  (See LP: #1419519)
-        delete = list(self._user.addresses)
-        for address in delete:
-            user_manager.delete_address(address)
         user_manager.delete_user(self._user)
         no_content(response)
 

@@ -24,9 +24,14 @@ __all__ = [
 
 import unittest
 
+from mailman.app.lifecycle import create_list
+from mailman.config import config
 from mailman.interfaces.address import ExistingAddressError
+from mailman.interfaces.autorespond import IAutoResponseSet, Response
+from mailman.interfaces.member import DeliveryMode
 from mailman.interfaces.usermanager import IUserManager
 from mailman.testing.layers import ConfigLayer
+from mailman.utilities.datetime import now
 from zope.component import getUtility
 
 
@@ -86,3 +91,39 @@ class TestUserManager(unittest.TestCase):
         original = self._usermanager.make_user('anne@example.com')
         copy = self._usermanager.get_user_by_id(original.user_id)
         self.assertEqual(original, copy)
+
+    def test_delete_user(self):
+        user = self._usermanager.make_user('anne@example.com', 'Anne Person')
+        address = self._usermanager.create_address('anne.address@example.com')
+        address.verified_on = now()
+        user.preferred_address = address
+        # Subscribe the user and the address to a list.
+        mlist = create_list('ant@example.com')
+        mlist.subscribe(user)
+        mlist.subscribe(address)
+        # Now delete the user.
+        self._usermanager.delete_user(user)
+        # Flush the database to provoke an integrity error on PostgreSQL
+        # without the fix.
+        config.db.store.flush()
+        self.assertIsNone(self._usermanager.get_user('anne@example.com'))
+        self.assertIsNone(
+            self._usermanager.get_address('anne.address@example.com'))
+
+    def test_delete_address(self):
+        address = self._usermanager.create_address('anne@example.com')
+        address.verified_on = now()
+        # Subscribe the address to a list.
+        mlist = create_list('ant@example.com')
+        mlist.subscribe(address)
+        # Set an autorespond record.
+        response_set = IAutoResponseSet(mlist)
+        response_set.response_sent(address, Response.hold)
+        # And add a digest record.
+        mlist.send_one_last_digest_to(address, DeliveryMode.plaintext_digests)
+        # Now delete the address.
+        self._usermanager.delete_address(address)
+        # Flush the database to provoke an integrity error on PostgreSQL
+        # without the fix.
+        config.db.store.flush()
+        self.assertIsNone(self._usermanager.get_address('anne@example.com'))

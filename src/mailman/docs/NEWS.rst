@@ -60,6 +60,8 @@ Bugs
    email to the mailing list moderators.  (Closes: #144)
  * Fix traceback in approved handler when the moderator password is None.
    Given by Aurélien Bompard.
+ * Fix IntegrityErrors raised under PostreSQL when deleting users and
+   addresses. Given by Aurélien Bompard.
 
 REST
 ----
