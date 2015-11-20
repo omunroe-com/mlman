@@ -286,9 +286,11 @@ class Memberships:
     @dbconnection
     def _query(self, store):
         results = store.query(Member).filter(
-            or_(Member.user_id == self._user.id,
-            and_(Address.user_id == self._user.id,
-                 Member.address_id == Address.id)))
+            Member.user_id == self._user.id
+            ).union(
+                store.query(Member).join(Address).filter(
+                    Address.user_id == self._user.id)
+                )
         return results.distinct()
 
     @property
