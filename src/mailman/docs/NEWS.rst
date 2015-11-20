@@ -58,6 +58,11 @@ Bugs
    Aurélien Bompard.  (Closes: #154)
  * Fix ``UnicodeEncodeError`` in the hold chain when sending the authorization
    email to the mailing list moderators.  (Closes: #144)
+ * Fix traceback in approved handler when the moderator password is None.
+   Given by Aurélien Bompard.
+
+REST
+----
  * When ``[devmode]enabled`` is set, the JSON output is sorted.  Given by
    Aurélien Bompard.
 

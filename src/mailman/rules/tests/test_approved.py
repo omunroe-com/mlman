@@ -138,6 +138,12 @@ A message body.
         self._rule.check(self._mlist, self._msg, {})
         self.assertEqual(self._msg['x-approve'], None)
 
+    def test_no_list_password(self):
+        self._mlist.moderator_password = None
+        self._msg['Approved'] = 'super secret'
+        result = self._rule.check(self._mlist, self._msg, {})
+        self.assertFalse(result)
+
 
 
 class TestApprovedPseudoHeader(unittest.TestCase):
