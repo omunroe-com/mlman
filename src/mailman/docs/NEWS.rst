@@ -58,6 +58,8 @@ Bugs
    Aurélien Bompard.  (Closes: #154)
  * Fix ``UnicodeEncodeError`` in the hold chain when sending the authorization
    email to the mailing list moderators.  (Closes: #144)
+ * When ``[devmode]enabled`` is set, the JSON output is sorted.  Given by
+   Aurélien Bompard.
 
 
 3.0.0 -- "Show Don't Tell"
