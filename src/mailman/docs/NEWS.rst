@@ -12,6 +12,18 @@ Here is a history of user visible changes to Mailman.
 ==========================
 (201X-XX-XX)
 
+Bugs
+----
+ * Fix IntegrityErrors raised under PostreSQL when deleting users and
+   addresses. Given by Aurélien Bompard.
+ * Fix traceback in approved handler when the moderator password is None.
+   Given by Aurélien Bompard.
+
+REST
+----
+ * When ``[devmode]enabled`` is set, the JSON output is sorted.  Given by
+   Aurélien Bompard.
+
 
 3.0.1 -- "Show Don't Tell"
 ==========================
@@ -58,15 +70,6 @@ Bugs
    Aurélien Bompard.  (Closes: #154)
  * Fix ``UnicodeEncodeError`` in the hold chain when sending the authorization
    email to the mailing list moderators.  (Closes: #144)
- * Fix traceback in approved handler when the moderator password is None.
-   Given by Aurélien Bompard.
- * Fix IntegrityErrors raised under PostreSQL when deleting users and
-   addresses. Given by Aurélien Bompard.
-
-REST
-----
- * When ``[devmode]enabled`` is set, the JSON output is sorted.  Given by
-   Aurélien Bompard.
 
 
 3.0.0 -- "Show Don't Tell"
