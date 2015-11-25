@@ -212,6 +212,12 @@ class LMTPRunner(Runner, smtpd.SMTPServer):
             try:
                 to = parseaddr(to)[1].lower()
                 local, subaddress, domain = split_recipient(to)
+                if subaddress is not None:
+                    # Check that local-subaddress is not an actual list name.
+                    listname = '{}-{}@{}'.format(local, subaddress, domain)
+                    if listname in listnames:
+                        local = '{}-{}'.format(local, subaddress)
+                        subaddress = None
                 slog.debug('%s to: %s, list: %s, sub: %s, dom: %s',
                            message_id, to, local, subaddress, domain)
                 listname = '{}@{}'.format(local, domain)

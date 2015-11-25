@@ -144,6 +144,38 @@ Message-ID: <aardvark>
         self.assertEqual(cm.exception.smtp_error,
                          b'Requested action not taken: mailbox unavailable')
 
+    def test_mailing_list_with_subaddress(self):
+        # A mailing list with a subaddress in its name should be recognized as
+        # the mailing list, not as a command.
+        with transaction():
+            create_list('test-join@example.com')
+        self._lmtp.sendmail('anne@example.com', ['test-join@example.com'], """\
+From: anne@example.com
+To: test-join@example.com
+Message-ID: <ant>
+Subject: This should not be recognized as a join command
+
+""")
+        # The message is in the incoming queue but not the command queue.
+        self.assertEqual(len(get_queue_messages('in')), 1)
+        self.assertEqual(len(get_queue_messages('command')), 0)
+
+    def test_mailing_list_with_subaddress_command(self):
+        # Like above, but we can still send a command to the mailing list.
+        with transaction():
+            create_list('test-join@example.com')
+        self._lmtp.sendmail('anne@example.com',
+                            ['test-join-join@example.com'], """\
+From: anne@example.com
+To: test-join-join@example.com
+Message-ID: <ant>
+Subject: This will be recognized as a join command.
+
+""")
+        # The message is in the command queue but not the incoming queue.
+        self.assertEqual(len(get_queue_messages('in')), 0)
+        self.assertEqual(len(get_queue_messages('command')), 1)
+
 
 
 class TestBugs(unittest.TestCase):
