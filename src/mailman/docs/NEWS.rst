@@ -20,6 +20,13 @@ Bugs
    Given by Aurélien Bompard.
  * Allow mailing lists to have localhost names with a suffix matching the
    subcommand extensions.  Given by Aurélien Bompard.  (Closes: #168)
+ * Don't traceback if a nonexistent message-id is deleted from the message
+   store.  Given by Aurélien Bompard, tweaked by Barry Warsaw.  (Closes: #167)
+
+Interfaces
+----------
+ * ``IMessageStore.delete_message()`` no longer raises a ``LookupError`` when
+   you attempt to delete a nonexistent message from the message store.
 
 REST
 ----

@@ -154,6 +154,15 @@ Message-ID: <alpha>
         self.assertEqual(messages[0].msgdata['recipients'],
                          ['zack@example.com'])
 
+    def test_survive_a_deleted_message(self):
+        # When the message that should be deleted is not found in the store,
+        # no error is raised.
+        request_id = hold_message(self._mlist, self._msg)
+        message_store = getUtility(IMessageStore)
+        message_store.delete_message('<alpha>')
+        handle_message(self._mlist, request_id, Action.discard)
+        self.assertEqual(self._request_db.count, 0)
+
 
 
 class TestUnsubscription(unittest.TestCase):

@@ -89,8 +89,10 @@ class IMessageStore(Interface):
     def delete_message(message_id):
         """Remove the given message from the store.
 
-        :param message: The Message-ID of the mesage to delete from the store.
-        :raises LookupError: if there is no such message.
+        If the referenced message is missing from the message store, the
+        operation is ignored.
+
+        :param message: The Message-ID of the message to delete from the store.
         """
 
     messages = Attribute(

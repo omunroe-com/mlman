@@ -129,8 +129,12 @@ class MessageStore:
     @dbconnection
     def delete_message(self, store, message_id):
         row = store.query(Message).filter_by(message_id=message_id).first()
-        if row is None:
-            raise LookupError(message_id)
-        path = os.path.join(config.MESSAGES_DIR, row.path)
-        os.remove(path)
-        store.delete(row)
+        if row is not None:
+            path = os.path.join(config.MESSAGES_DIR, row.path)
+            # It's possible that a race condition caused the file system path
+            # to already be deleted.
+            try:
+                os.remove(path)
+            except FileNotFoundError:
+                pass
+            store.delete(row)
