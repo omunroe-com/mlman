@@ -65,6 +65,7 @@ class IndividualRequest(_ModerationBase):
         # the pending table.
         try:
             resource = self._resource_as_dict(self._token)
+            assert resource is not None, resource
         except LookupError:
             not_found(response)
             return

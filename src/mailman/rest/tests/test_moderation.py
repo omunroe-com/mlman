@@ -69,7 +69,7 @@ Something else.
         self.assertEqual(cm.exception.code, 400)
 
     def test_missing_held_message_request_id(self):
-        # Bad request when the request_id is not in the database.
+        # Not found when the request_id is not in the database.
         with self.assertRaises(HTTPError) as cm:
             call_api('http://localhost:9001/3.0/lists/ant@example.com/held/99')
         self.assertEqual(cm.exception.code, 404)

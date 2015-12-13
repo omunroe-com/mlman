@@ -132,7 +132,9 @@ class CollectionMixin:
 
     def _resource_as_json(self, resource):
         """Return the JSON formatted representation of the resource."""
-        return etag(self._resource_as_dict(resource))
+        resource = self._resource_as_dict(resource)
+        assert resource is not None, resource
+        return etag(resource)
 
     def _get_collection(self, request):
         """Return the collection as a concrete list.
@@ -173,6 +175,7 @@ class CollectionMixin:
         if len(collection) != 0:
             entries = [self._resource_as_dict(resource)
                        for resource in collection]
+            assert None not in entries, entries
             # Tag the resources but use the dictionaries.
             [etag(resource) for resource in entries]
             # Create the collection resource
