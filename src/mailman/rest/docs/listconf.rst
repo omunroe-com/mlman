@@ -186,10 +186,56 @@ These values are changed permanently.
 Sub-resources
 =============
 
-Many of the mailing list configuration variables are actually available as
-sub-resources on the mailing list.  This is because they are collections,
-sequences, and other complex configuration types.  Their values can be
-retrieved and set through the sub-resource.
+Mailing list configuration variables are actually available as sub-resources
+on the mailing list.  Their values can be retrieved and set through the
+sub-resource.
+
+
+Simple resources
+----------------
+
+You can view the current value of the sub-resource.
+
+    >>> dump_json('http://localhost:9001/3.0/lists/ant.example.com'
+    ...           '/config/display_name')
+    display_name: My List
+    http_etag: ...
+
+The resource can be changed by PUTting to it.  Note that the value still
+requires a dictionary, and that dictionary must have a single key matching the
+name of the resource.
+::
+
+    >>> dump_json('http://localhost:9001/3.0/lists/ant.example.com'
+    ...           '/config/display_name',
+    ...           dict(display_name='Your List'),
+    ...           'PUT')
+    content-length: 0
+    date: ...
+    server: ...
+    status: 204
+
+    >>> dump_json('http://localhost:9001/3.0/lists/ant.example.com'
+    ...           '/config/display_name')
+    display_name: Your List
+    http_etag: ...
+
+PATCH works the same way, with the same effect, so you can choose to use
+either method.
+
+    >>> dump_json('http://localhost:9001/3.0/lists/ant.example.com'
+    ...           '/config/display_name',
+    ...           dict(display_name='Their List'),
+    ...           'PATCH')
+    content-length: 0
+    date: ...
+    server: ...
+    status: 204
+
+    >>> dump_json('http://localhost:9001/3.0/lists/ant.example.com'
+    ...           '/config/display_name')
+    display_name: Their List
+    http_etag: ...
 
 
 Acceptable aliases
