@@ -32,6 +32,8 @@ REST
 ----
  * When ``[devmode]enabled`` is set, the JSON output is sorted.  Given by
    Aurélien Bompard.
+ * Fixed a number of corner cases for the return codes when PUTing or PATCHing
+   list configuration variables.  (Closes: #182)
 
 
 3.0.1 -- "Show Don't Tell"
