@@ -30,7 +30,7 @@ from mailman.interfaces.address import IAddress, InvalidEmailAddressError
 from mailman.interfaces.listmanager import IListManager
 from mailman.interfaces.member import (
     AlreadySubscribedError, DeliveryMode, MemberRole, MembershipError,
-    MembershipIsBannedError, NotAMemberError)
+    MembershipIsBannedError, MissingPreferredAddressError, NotAMemberError)
 from mailman.interfaces.registrar import IRegistrar
 from mailman.interfaces.subscriptions import (
     ISubscriptionService, RequestRecord, TokenOwner)
@@ -268,6 +268,9 @@ class AllMembers(_MemberBase):
                     pre_approved=pre_approved)
             except AlreadySubscribedError:
                 conflict(response, b'Member already subscribed')
+                return
+            except MissingPreferredAddressError:
+                bad_request(response, b'User has no preferred address')
                 return
             if token is None:
                 assert token_owner is TokenOwner.no_one, token_owner

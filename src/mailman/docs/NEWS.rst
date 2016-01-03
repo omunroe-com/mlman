@@ -34,6 +34,8 @@ REST
    Aurélien Bompard.
  * Fixed a number of corner cases for the return codes when PUTing or PATCHing
    list configuration variables.  (Closes: #182)
+ * Don't crash the REST server when trying to subscribe a user without a
+   preferred address.  (Closes: #185)
 
 
 3.0.1 -- "Show Don't Tell"
