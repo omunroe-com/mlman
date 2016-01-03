@@ -43,7 +43,7 @@ master_doc = 'README'
 
 # General information about the project.
 project = u'GNU Mailman'
-copyright = u'1998-2015 by the Free Software Foundation, Inc.'
+copyright = u'1998-2016 by the Free Software Foundation, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

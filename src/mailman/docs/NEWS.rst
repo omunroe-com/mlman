@@ -2,7 +2,7 @@
 Mailman - The GNU Mailing List Management System
 ================================================
 
-Copyright (C) 1998-2015 by the Free Software Foundation, Inc.
+Copyright (C) 1998-2016 by the Free Software Foundation, Inc.
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 
 Here is a history of user visible changes to Mailman.
@@ -10,7 +10,7 @@ Here is a history of user visible changes to Mailman.
 
 3.0.2 -- "Show Don't Tell"
 ==========================
-(201X-XX-XX)
+(2016-XX-XX)
 
 Bugs
 ----

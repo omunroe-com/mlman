@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2015 by the Free Software Foundation, Inc.
+# Copyright (C) 2009-2016 by the Free Software Foundation, Inc.
 #
 # This file is part of GNU Mailman.
 #
@@ -41,7 +41,7 @@ def main():
     parser = argparse.ArgumentParser(
         description=_("""\
         The GNU Mailman mailing list management system
-        Copyright 1998-2015 by the Free Software Foundation, Inc.
+        Copyright 1998-2016 by the Free Software Foundation, Inc.
         http://www.list.org
         """),
         formatter_class=argparse.RawDescriptionHelpFormatter)

@@ -9,9 +9,21 @@ import datetime
 
 FSF = 'by the Free Software Foundation, Inc.'
 this_year = datetime.date.today().year
-pyre = re.compile(r'# Copyright \(C\) ((?P<start>\d{4})-)?(?P<end>\d{4})')
+pyre_c = re.compile(r'# Copyright \(C\) ((?P<start>\d{4})-)?(?P<end>\d{4})')
+pyre_n = re.compile(r'# Copyright ((?P<start>\d{4})-)?(?P<end>\d{4})')
+new_c = '# Copyright (C) {}-{} {}'
+new_n = '# Copyright {}-{} {}'
 
 MODE = (stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
+
+if '--noc' in sys.argv:
+    pyre = pyre_n
+    new = new_n
+    sys.argv.remove('--noc')
+else:
+    pyre = pyre_c
+    new = new_c
 
 
 def do_file(path, owner):
@@ -19,18 +31,19 @@ def do_file(path, owner):
     with open(path) as in_file, open(path + '.out', 'w') as out_file:
         try:
             for line in in_file:
-                mo = pyre.match(line)
-                if mo is None:
+                mo_c = pyre_c.match(line)
+                mo_n = pyre_n.match(line)
+                if mo_c is None and mo_n is None:
                     out_file.write(line)
                     continue
+                mo = (mo_n if mo_c is None else mo_c)
                 start = (mo.group('end')
                          if mo.group('start') is None
                          else mo.group('start'))
                 if int(start) == this_year:
                     out_file.write(line)
                     continue
-                print('# Copyright (C) {}-{} {}'.format(
-                      start, this_year, owner), file=out_file)
+                print(new.format(start, this_year, owner), file=out_file)
                 print('=>', path)
                 for line in in_file:
                     out_file.write(line)
@@ -56,8 +69,8 @@ def do_walk():
         owner = FSF
     for root, dirs, files in os.walk('.'):
         if root == '.':
-            remove(dirs, '.bzr')
             remove(dirs, '.git')
+            remove(dirs, '.tox')
             remove(dirs, 'bin')
             remove(dirs, 'contrib')
             remove(dirs, 'develop-eggs')

@@ -1,4 +1,4 @@
-# Copyright (C) 2013-2015 by the Free Software Foundation, Inc.
+# Copyright (C) 2013-2016 by the Free Software Foundation, Inc.
 #
 # This file is part of GNU Mailman.
 #

@@ -4,7 +4,7 @@
 Getting started with GNU Mailman
 ================================
 
-Copyright (C) 2008-2015 by the Free Software Foundation, Inc.
+Copyright (C) 2008-2016 by the Free Software Foundation, Inc.
 
 
 Contact Us
