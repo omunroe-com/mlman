@@ -20,6 +20,7 @@
 __all__ = [
     'TestMailingListRoster',
     'TestMembershipsRoster',
+    'TestUserRoster',
     ]
 
 
@@ -33,6 +34,16 @@ from mailman.interfaces.usermanager import IUserManager
 from mailman.testing.layers import ConfigLayer
 from mailman.utilities.datetime import now
 from zope.component import getUtility
+
+
+
+def _set_preferred(user):
+    # Avoid circular imports.
+    from mailman.utilities.datetime import now
+    preferred = list(user.addresses)[0]
+    preferred.verified_on = now()
+    user.preferred_address = preferred
+    return preferred
 
 
 
@@ -200,3 +211,33 @@ class TestMembershipsRoster(unittest.TestCase):
         self.assertEqual(
             [record.address.email for record in memberships],
             ['anne@example.com', 'anne@example.com'])
+
+
+
+class TestUserRoster(unittest.TestCase):
+    """Test aspects of rosters when users are subscribed."""
+
+    layer = ConfigLayer
+
+    def setUp(self):
+        self._mlist = create_list('ant@example.com')
+        user_manager = getUtility(IUserManager)
+        self._anne = user_manager.create_user('anne@example.com')
+        self._bart = user_manager.create_user('bart@example.com')
+        self._cris = user_manager.create_user('cris@example.com')
+        self._dave = user_manager.create_user('dave@example.com')
+        _set_preferred(self._anne)
+        _set_preferred(self._bart)
+        _set_preferred(self._cris)
+        _set_preferred(self._dave)
+
+    def test_narrow_get_member(self):
+        # Ensure that when multiple users are subscribed to the same mailing
+        # list via their preferred address, only the member in question is
+        # returned from .get_member().
+        self._mlist.subscribe(self._anne)
+        self._mlist.subscribe(self._bart)
+        self._mlist.subscribe(self._cris)
+        self._mlist.subscribe(self._dave)
+        member = self._mlist.members.get_member('bart@example.com')
+        self.assertEqual(member.user, self._bart)

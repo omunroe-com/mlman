@@ -112,8 +112,9 @@ class AbstractRoster:
         members_u = store.query(Member).filter(
             Member.list_id == self._mlist.list_id,
             Member.role == self.role,
-            Address.email==email,
-            Member.user_id == User.id)
+            Address.email == email,
+            Member.user_id == User.id,
+            User._preferred_address_id == Address.id)
         return members_a.union(members_u).all()
 
     def get_member(self, email):

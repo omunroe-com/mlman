@@ -22,6 +22,8 @@ Bugs
    subcommand extensions.  Given by Aurélien Bompard.  (Closes: #168)
  * Don't traceback if a nonexistent message-id is deleted from the message
    store.  Given by Aurélien Bompard, tweaked by Barry Warsaw.  (Closes: #167)
+ * Fix membership query when multiple users are subscribed to a mailing list.
+   Reported by Darrell Kresge.  (Closes: #190)
 
 Interfaces
 ----------
