@@ -1,18 +1,24 @@
 # This is core test runner
-before_script:
-  - pip install tox
+
+image: maxking/mailman-ci-runner
+
+variables:
+  POSTGRES_DB: "mailman_test"
+  POSTGRES_USER: "runner"
+  POSTGRES_PASSWORD: "runner"
+  MYSQL_ROOT_PASSWORD: "runner"
+  MYSQL_USER: "runner"
+  MYSQL_USER_PASSWORD: "runner"
+  MYSQL_DATABASE: "test_mailman"
 
 sqlite:
   script:
-  - tox
-
-  tags:
-  - sqlite
-
+  - tox -e py34,py35
 
 pgsql:
+  services:
+  - postgres:latest
   script:
-  - MAILMAN_EXTRA_TESTING_CFG=/data/postgres.cfg tox -e pg
-
+  - MAILMAN_EXTRA_TESTING_CFG=/home/runner/configs/postgres.cfg tox -e {py34,py35}-pg
   tags:
   - postgres
