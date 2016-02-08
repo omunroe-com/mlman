@@ -10,7 +10,7 @@ Here is a history of user visible changes to Mailman.
 
 3.0.2 -- "Show Don't Tell"
 ==========================
-(2016-XX-XX)
+(2016-02-08)
 
 Bugs
 ----
