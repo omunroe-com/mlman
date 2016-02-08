@@ -24,6 +24,7 @@ Bugs
    store.  Given by Aurélien Bompard, tweaked by Barry Warsaw.  (Closes: #167)
  * Fix membership query when multiple users are subscribed to a mailing list.
    Reported by Darrell Kresge.  (Closes: #190)
+ * Prevent moderation of messages held for a different list.  (Closes: #161)
 
 Interfaces
 ----------
@@ -85,7 +86,6 @@ Bugs
    Aurélien Bompard.  (Closes: #154)
  * Fix ``UnicodeEncodeError`` in the hold chain when sending the authorization
    email to the mailing list moderators.  (Closes: #144)
- * Prevent moderation of messages held for a different list.  (Closes: #161)
 
 
 3.0.0 -- "Show Don't Tell"
