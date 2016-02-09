@@ -324,6 +324,9 @@ class AllMembers(_MemberBase):
         except MembershipIsBannedError:
             bad_request(response, b'Membership is banned')
             return
+        except AlreadySubscribedError:
+            bad_request(response, email+' is already an owner of the list '+ mlist.list_name)
+            return
         # The subscription completed.  Let's get the resulting member
         # and return the location to the new member.  Member ids are
         # UUIDs and need to be converted to URLs because JSON doesn't
