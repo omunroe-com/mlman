@@ -24,10 +24,12 @@ __all__ = [
 
 from mailman.app.moderator import send_rejection
 from mailman.interfaces.action import Action
+from mailman.interfaces.member import AlreadySubscribedError
 from mailman.interfaces.pending import IPendings
 from mailman.interfaces.registrar import IRegistrar
 from mailman.rest.helpers import (
-    CollectionMixin, bad_request, child, etag, no_content, not_found, okay)
+    CollectionMixin, bad_request, child, conflict, etag, no_content,
+    not_found, okay)
 from mailman.rest.validator import Validator, enum_validator
 from mailman.utilities.i18n import _
 from zope.component import getUtility
@@ -91,6 +93,8 @@ class IndividualRequest(_ModerationBase):
                 self._registrar.confirm(self._token)
             except LookupError:
                 not_found(response)
+            except AlreadySubscribedError:
+                conflict(response, 'Already subscribed')
             else:
                 no_content(response)
         elif action is Action.discard:

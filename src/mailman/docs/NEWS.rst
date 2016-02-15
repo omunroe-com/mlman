@@ -8,6 +8,17 @@ Copyright (C) 1998-2016 by the Free Software Foundation, Inc.
 Here is a history of user visible changes to Mailman.
 
 
+3.0.3 -- "Show Don't Tell"
+==========================
+(2016-XX-XX)
+
+Bugs
+----
+ * When approving a subscription request via the REST API, for a user who is
+   already a member, return an HTTP 409 Conflict code instead of the previous
+   server traceback (and resulting HTTP 500 code).  (Closes: #193)
+
+
 3.0.2 -- "Show Don't Tell"
 ==========================
 (2016-02-08)

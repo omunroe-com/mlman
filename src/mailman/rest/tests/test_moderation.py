@@ -223,6 +223,21 @@ class TestSubscriptionModeration(unittest.TestCase):
                 ))
         self.assertEqual(cm.exception.code, 404)
 
+    def test_accept_already_subscribed(self):
+        # POST to a subscription request, but the user is already subscribed.
+        with transaction():
+            token, token_owner, member = self._registrar.register(self._anne)
+            # Make Anne already a member.
+            self._mlist.subscribe(self._anne)
+        # Accept the pending subscription, which raises an error.
+        url = 'http://localhost:9001/3.0/lists/ant.example.com/requests/{}'
+        with self.assertRaises(HTTPError) as cm:
+            call_api(url.format(token), dict(
+                action='accept',
+                ))
+        self.assertEqual(cm.exception.code, 409)
+        self.assertEqual(cm.exception.reason, b'Already subscribed')
+
     def test_accept_bad_token(self):
         # Try to accept a request with a bogus token.
         with self.assertRaises(HTTPError) as cm:
