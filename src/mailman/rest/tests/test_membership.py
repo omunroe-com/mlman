@@ -380,12 +380,12 @@ Some text.
             anne = getUtility(IUserManager).create_address('anne@example.com')
             self._mlist.subscribe(anne, MemberRole.owner)
         with self.assertRaises(HTTPError) as cm:
-            call_api('http://localhost:9001/3.1/members', {
-                'list_id': 'ant.example.com',
+            call_api('http://localhost:9001/3.0/members', {
+                'list_id': 'test.example.com',
                 'subscriber': anne.email,
                 'role': 'owner',
                 })
         self.assertEqual(cm.exception.code, 400)
         self.assertEqual(
             cm.exception.reason,
-            b'anne@example.com is already an owner of ant@example.com')
+            b'anne@example.com is already an owner of test@example.com')
