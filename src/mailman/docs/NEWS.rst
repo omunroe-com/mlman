@@ -17,6 +17,9 @@ Bugs
  * When approving a subscription request via the REST API, for a user who is
    already a member, return an HTTP 409 Conflict code instead of the previous
    server traceback (and resulting HTTP 500 code).  (Closes: #193)
+ * Trying to subscribe an address as a list owner (or moderator or nonmember)
+   which is already subscribed with that role produces a server error.
+   Originally given by Anirudh Dahiya.  (Closes #198)
 
 
 3.0.2 -- "Show Don't Tell"

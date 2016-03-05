@@ -325,7 +325,9 @@ class AllMembers(_MemberBase):
             bad_request(response, b'Membership is banned')
             return
         except AlreadySubscribedError:
-            bad_request(response, email+' is already an owner of the list '+ mlist.list_name)
+            bad_request(response,
+                        '{} is already an {} of {}'.format(
+                            email, role.name, mlist.fqdn_listname))
             return
         # The subscription completed.  Let's get the resulting member
         # and return the location to the new member.  Member ids are

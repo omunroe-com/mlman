@@ -28,6 +28,7 @@ import unittest
 from mailman.app.lifecycle import create_list
 from mailman.config import config
 from mailman.database.transaction import transaction
+from mailman.interfaces.member import MemberRole
 from mailman.interfaces.usermanager import IUserManager
 from mailman.testing.helpers import (
     TestableMaster, call_api, get_lmtp_client, make_testable_runner,
@@ -372,3 +373,19 @@ Some text.
         # previously been linked to a user record.
         self.assertEqual(nonmember['user'],
                          'http://localhost:9001/3.0/users/1')
+
+    def test_duplicate_owner(self):
+        # Server failure when someone is already an owner.
+        with transaction():
+            anne = getUtility(IUserManager).create_address('anne@example.com')
+            self._mlist.subscribe(anne, MemberRole.owner)
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.1/members', {
+                'list_id': 'ant.example.com',
+                'subscriber': anne.email,
+                'role': 'owner',
+                })
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(
+            cm.exception.reason,
+            b'anne@example.com is already an owner of ant@example.com')
