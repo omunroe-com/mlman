@@ -400,8 +400,14 @@ class TestApprovedNonASCII(unittest.TestCase):
 
     def setUp(self):
         self._mlist = create_list('test@example.com')
+        self._mlist.moderator_password = config.password_context.encrypt(
+            'super secret')
         self._rule = approved.Approved()
-        self._msg = mfs("""\
+
+    def test_nonascii_body_missing_header(self):
+        # When the message body contains non-ascii, the rule should not throw
+        # unicode errors.  LP: #949924.
+        msg = mfs("""\
 From: anne@example.com
 To: test@example.com
 Subject: A Message with non-ascii body
@@ -412,11 +418,24 @@ Content-Transfer-Encoding: quoted-printable
 
 This is a message body with a non-ascii character =E4
 """)
+        result = self._rule.check(self._mlist, msg, {})
+        self.assertFalse(result)
 
-    def test_nonascii_body_missing_header(self):
-        # When the message body contains non-ascii, the rule should not throw
-        # unicode errors.  LP: #949924.
-        result = self._rule.check(self._mlist, self._msg, {})
+    def test_unknown_charset(self):
+        # When the charset is unknown, the rule should not crash.  GL: #203
+        msg = mfs("""\
+From: anne@example.com
+To: test@example.com
+Subject: A Message with non-ascii body
+Message-ID: <ant>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=unknown-8bit
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+This is a message body with a non-ascii character =E4
+""")
+        result = self._rule.check(self._mlist, msg, {})
         self.assertFalse(result)
 
 

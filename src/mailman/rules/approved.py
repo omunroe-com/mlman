@@ -74,8 +74,14 @@ class Approved:
                 payload = part.get_payload(decode=True)
                 break
             if payload is not None:
-                charset = part.get_content_charset('us-ascii')
-                payload = payload.decode(charset, 'replace')
+                try:
+                    # Do the decoding inside the try/except so that if the
+                    # charset conversion fails, we'll just drop back to ascii.
+                    charset = part.get_content_charset('us-ascii')
+                    payload = payload.decode(charset, 'replace')
+                except (LookupError, TypeError):
+                    # Unknown or empty charset.
+                    payload = payload.decode('us-ascii', 'replace')
                 line = ''
                 lines = payload.splitlines(True)
                 for lineno, line in enumerate(lines):
