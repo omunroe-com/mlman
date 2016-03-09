@@ -57,13 +57,11 @@ class MessageStore:
         message_id = message_ids[0]
         if isinstance(message_id, bytes):
             message_id = message_id.decode('ascii')
-        # Complain if the Message-ID already exists in the storage.
+        # If the Message-ID already exists in the store, don't store it again.
         existing = store.query(Message).filter(
             Message.message_id == message_id).first()
         if existing is not None:
-            raise ValueError(
-                'Message ID already exists in message store: {0}'.format(
-                    message_id))
+            return None
         shaobj = hashlib.sha1(message_id.encode('utf-8'))
         hash32 = base64.b32encode(shaobj.digest()).decode('utf-8')
         del message['X-Message-ID-Hash']

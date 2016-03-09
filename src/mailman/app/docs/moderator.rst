@@ -171,36 +171,11 @@ however the message metadata indicates that the message has been approved.
     version           : 3
 
 
-Preserving and forwarding the message
--------------------------------------
+Forwarding the message
+----------------------
 
-In addition to any of the above dispositions, the message can also be
-preserved for further study.  Ordinarily the message is removed from the
-global message store after its disposition (though approved messages may be
-re-added to the message store later).  When handling a message, we can ask for
-a copy to be preserve, which skips deleting the message from the storage.
-::
-
-    >>> msg = message_from_string("""\
-    ... From: dave@example.org
-    ... To: ant@example.com
-    ... Subject: Something important
-    ... Message-ID: <dolphin>
-    ...
-    ... Here's something important about our mailing list.
-    ... """)
-    >>> id = hold_message(mlist, msg, {}, 'Needs approval')
-    >>> handle_message(mlist, id, Action.discard, preserve=True)
-
-    >>> from mailman.interfaces.messages import IMessageStore
-    >>> from zope.component import getUtility
-    >>> message_store = getUtility(IMessageStore)
-    >>> print(message_store.get_message_by_id('<dolphin>')['message-id'])
-    <dolphin>
-
-Orthogonal to preservation, the message can also be forwarded to another
-address.  This is helpful for getting the message into the inbox of one of the
-moderators.
+The message can be forwarded to another address.  This is helpful for getting
+the message into the inbox of one of the moderators.
 ::
 
     >>> msg = message_from_string("""\

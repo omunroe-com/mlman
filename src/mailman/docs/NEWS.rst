@@ -20,6 +20,7 @@ Bugs
  * Trying to subscribe an address as a list owner (or moderator or nonmember)
    which is already subscribed with that role produces a server error.
    Originally given by Anirudh Dahiya.  (Closes #198)
+ * Cross-posting messages held on both lists no longer fails.  (Closes #176)
 
 
 3.0.2 -- "Show Don't Tell"

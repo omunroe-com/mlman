@@ -29,6 +29,7 @@ from mailman.app.lifecycle import create_list
 from mailman.chains.hold import autorespond_to_sender
 from mailman.core.chains import process as process_chain
 from mailman.interfaces.autorespond import IAutoResponseSet, Response
+from mailman.interfaces.messages import IMessageStore
 from mailman.interfaces.usermanager import IUserManager
 from mailman.testing.helpers import (
     LogFileMark, configuration, get_queue_messages,
@@ -164,3 +165,37 @@ A message body.
         self.assertEqual(
             msg['Subject'],
             'test@example.com post from anne@example.com requires approval')
+
+    def test_hold_chain_crosspost(self):
+        mlist2 = create_list('test2@example.com')
+        msg = mfs("""\
+From: anne@example.com
+To: test@example.com, test2@example.com
+Subject: A message
+Message-ID: <ant>
+MIME-Version: 1.0
+
+A message body.
+""")
+        process_chain(self._mlist, msg, {}, start_chain='hold')
+        process_chain(mlist2, msg, {}, start_chain='hold')
+        items = get_queue_messages('virgin')
+        # There are four items in the virgin queue.  Two of them are for the
+        # list owners who need to moderate the held message, and the other is
+        # for anne telling her that her message was held for approval.
+        self.assertEqual(len(items), 4)
+        anne_froms = set()
+        owner_tos = set()
+        for item in items:
+            if item.msg['to'] == 'anne@example.com':
+                anne_froms.add(item.msg['from'])
+            else:
+                owner_tos.add(item.msg['to'])
+        self.assertEqual(anne_froms, set(['test-bounces@example.com',
+                                          'test2-bounces@example.com']))
+        self.assertEqual(owner_tos, set(['test-owner@example.com',
+                                         'test2-owner@example.com']))
+        # And the message appears in the store.
+        messages = list(getUtility(IMessageStore).messages)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0]['message-id'], '<ant>')

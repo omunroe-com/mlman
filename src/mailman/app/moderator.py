@@ -103,8 +103,7 @@ def hold_message(mlist, msg, msgdata=None, reason=None):
 
 
 
-def handle_message(mlist, id, action,
-                   comment=None, preserve=False, forward=None):
+def handle_message(mlist, id, action, comment=None, forward=None):
     message_store = getUtility(IMessageStore)
     requestdb = IListRequests(mlist)
     key, msgdata = requestdb.get_request(id)
@@ -113,9 +112,10 @@ def handle_message(mlist, id, action,
     message_id = msgdata['_mod_message_id']
     sender = msgdata['_mod_sender']
     subject = msgdata['_mod_subject']
+    keep = False
     if action in (Action.defer, Action.hold):
         # Nothing to do, but preserve the message for later.
-        preserve = True
+        keep = True
     elif action is Action.discard:
         rejection = 'Discarded'
     elif action is Action.reject:
@@ -179,9 +179,8 @@ def handle_message(mlist, id, action,
         fmsg.set_type('message/rfc822')
         fmsg.attach(msg)
         fmsg.send(mlist)
-    # Delete the message from the message store if it is not being preserved.
-    if not preserve:
-        message_store.delete_message(message_id)
+    # Delete the request if it's not being kept.
+    if not keep:
         requestdb.delete_request(id)
     # Log the rejection
     if rejection:

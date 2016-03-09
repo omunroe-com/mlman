@@ -122,31 +122,12 @@ Message-ID: <alpha>
         key, data = self._request_db.get_request(request_id)
         self.assertEqual(data['received_time'], received_time)
 
-    def test_non_preserving_disposition(self):
-        # By default, disposed messages are not preserved.
-        request_id = hold_message(self._mlist, self._msg)
-        handle_message(self._mlist, request_id, Action.discard)
-        message_store = getUtility(IMessageStore)
-        self.assertIsNone(message_store.get_message_by_id('<alpha>'))
-
-    def test_preserving_disposition(self):
-        # Preserving a message keeps it in the store.
-        request_id = hold_message(self._mlist, self._msg)
-        handle_message(self._mlist, request_id, Action.discard, preserve=True)
-        message_store = getUtility(IMessageStore)
-        preserved_message = message_store.get_message_by_id('<alpha>')
-        self.assertEqual(preserved_message['message-id'], '<alpha>')
-
-    def test_preserve_and_forward(self):
-        # We can both preserve and forward the message.
+    def test_forward(self):
+        # We can forward the message to an email address.
         request_id = hold_message(self._mlist, self._msg)
         handle_message(self._mlist, request_id, Action.discard,
-                       preserve=True, forward=['zack@example.com'])
-        # The message is preserved in the store.
-        message_store = getUtility(IMessageStore)
-        preserved_message = message_store.get_message_by_id('<alpha>')
-        self.assertEqual(preserved_message['message-id'], '<alpha>')
-        # And the forwarded message lives in the virgin queue.
+                       forward=['zack@example.com'])
+        # The forwarded message lives in the virgin queue.
         messages = get_queue_messages('virgin')
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0].msg['subject']),
@@ -162,6 +143,15 @@ Message-ID: <alpha>
         message_store.delete_message('<alpha>')
         handle_message(self._mlist, request_id, Action.discard)
         self.assertEqual(self._request_db.count, 0)
+
+    def test_handled_message_stays_in_store(self):
+        # The message is still available in the store, even when it's been
+        # disposed of.
+        request_id = hold_message(self._mlist, self._msg)
+        handle_message(self._mlist, request_id, Action.discard)
+        self.assertEqual(self._request_db.count, 0)
+        message = getUtility(IMessageStore).get_message_by_id('<alpha>')
+        self.assertEqual(message['subject'], 'hold me')
 
 
 
