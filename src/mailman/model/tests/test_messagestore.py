@@ -110,7 +110,7 @@ Message-ID: <ant>
         hash32 = self._store.add(msg)
         stored_msg = self._store.get_message_by_id('<ant>')
         self.assertEqual(msg['subject'], stored_msg['subject'])
-        self.assertEqual(msg['message-id-hash'], hash32)
+        self.assertEqual(msg['x-message-id-hash'], hash32)
         # A second insertion, even if headers change, does not store the
         # message twice.
         del msg['subject']
