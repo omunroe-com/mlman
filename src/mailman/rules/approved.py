@@ -77,7 +77,7 @@ class Approved:
                 charset = part.get_content_charset('us-ascii')
                 try:
                     # Do the decoding inside the try/except so that if the
-                    # charset conversion fails, we'll just drop back to ascii.
+                    # charset is unknown, we'll just drop back to ascii.
                     payload = payload.decode(charset, 'replace')
                 except LookupError:
                     # Unknown or empty charset.

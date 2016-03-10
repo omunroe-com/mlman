@@ -21,6 +21,8 @@ Bugs
    which is already subscribed with that role produces a server error.
    Originally given by Anirudh Dahiya.  (Closes #198)
  * Cross-posting messages held on both lists no longer fails.  (Closes #176)
+ * Don't let unknown charsets crash the "approved" rule.  Given by Aurélien
+   Bompard.  (Closes #203)
 
 
 3.0.2 -- "Show Don't Tell"
