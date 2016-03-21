@@ -23,6 +23,8 @@ Bugs
  * Cross-posting messages held on both lists no longer fails.  (Closes #176)
  * Don't let unknown charsets crash the "approved" rule.  Given by Aurélien
    Bompard.  (Closes #203)
+ * Don't let crashes in IArchiver plugins break handlers or runners.
+   (Closes #208)
 
 
 3.0.2 -- "Show Don't Tell"

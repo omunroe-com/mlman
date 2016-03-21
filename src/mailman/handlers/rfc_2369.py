@@ -22,6 +22,8 @@ __all__ = [
     ]
 
 
+import logging
+
 from email.utils import formataddr
 from mailman.core.i18n import _
 from mailman.handlers.cook_headers import uheader
@@ -32,6 +34,8 @@ from zope.interface import implementer
 
 
 CONTINUATION = ',\n\t'
+
+log = logging.getLogger('mailman.archiver')
 
 
 
@@ -85,11 +89,22 @@ def process(mlist, msg, msgdata):
             for archiver in archiver_set.archivers:
                 if not archiver.is_enabled:
                     continue
-                archiver_url = archiver.system_archiver.list_url(mlist)
+                # Watch out for exceptions in the archiver plugin.
+                try:
+                    archiver_url = archiver.system_archiver.list_url(mlist)
+                except Exception:
+                    log.exception('Exception in "{}" archiver'.format(
+                        archiver.system_archiver.name))
+                    archiver_url = None
                 if archiver_url is not None:
                     headers.append(('List-Archive',
                                     '<{}>'.format(archiver_url)))
-                permalink = archiver.system_archiver.permalink(mlist, msg)
+                try:
+                    permalink = archiver.system_archiver.permalink(mlist, msg)
+                except Exception:
+                    log.exception('Exception in "{}" archiver'.format(
+                        archiver.system_archiver.name))
+                    permalink = None
                 if permalink is not None:
                     headers.append(('Archived-At', '<{}>'.format(permalink)))
     # XXX RFC 2369 also defines a List-Owner header which we are not currently

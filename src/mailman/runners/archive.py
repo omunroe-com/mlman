@@ -35,7 +35,7 @@ from mailman.utilities.datetime import RFC822_DATE_FMT, now
 from mailman.interfaces.mailinglist import IListArchiverSet
 
 
-log = logging.getLogger('mailman.error')
+log = logging.getLogger('mailman.archiver')
 
 
 
@@ -106,4 +106,5 @@ class ArchiveRunner(Runner):
             try:
                 archiver.system_archiver.archive_message(mlist, msg_copy)
             except Exception:
-                log.exception('Broken archiver: %s' % archiver.name)
+                log.exception('Exception in "{}" archiver'.format(
+                    archiver.name))

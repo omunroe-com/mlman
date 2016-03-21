@@ -28,7 +28,8 @@ from mailman.app.lifecycle import create_list
 from mailman.config import config
 from mailman.handlers import rfc_2369
 from mailman.interfaces.archiver import ArchivePolicy, IArchiver
-from mailman.testing.helpers import specialized_message_from_string as mfs
+from mailman.testing.helpers import (
+    LogFileMark, specialized_message_from_string as mfs)
 from mailman.testing.layers import ConfigLayer
 from urllib.parse import urljoin
 from zope.interface import implementer
@@ -54,6 +55,23 @@ class DummyArchiver:
     @staticmethod
     def archive_message(mlist, message):
         return None
+
+
+@implementer(IArchiver)
+class BrokenArchiver:
+    """An archiver that has some broken methods."""
+
+    name = 'broken'
+
+    def list_url(self, mlist):
+        raise RuntimeError('Cannot get list URL')
+
+    def permalink(self, mlist, msg):
+        raise RuntimeError('Cannot get permalink')
+
+    @staticmethod
+    def archive_message(mlist, message):
+        raise RuntimeError('Cannot archive message')
 
 
 
@@ -123,3 +141,24 @@ Dummy text
         rfc_2369.process(self._mlist, self._msg, {})
         self.assertNotIn('List-Archive', self._msg)
         self.assertNotIn('Archived-At', self._msg)
+
+    def test_broken_archiver(self):
+        # GL issue #208 - IArchive messages raise exceptions, breaking the
+        # rfc-2369 handler and shunting messages.
+        config.push('archiver', """
+        [archiver.broken]
+        class: {}.BrokenArchiver
+        enable: yes
+        """.format(BrokenArchiver.__module__))
+        self.addCleanup(config.pop, 'archiver')
+        mark = LogFileMark('mailman.archiver')
+        rfc_2369.process(self._mlist, self._msg, {})
+        log_messages = mark.read()
+        # Because .list_url() was broken, there will be no List-Archive header.
+        self.assertIsNone(self._msg.get('list-archive'))
+        self.assertIn('Exception in "broken" archiver', log_messages)
+        self.assertIn('RuntimeError: Cannot get list URL', log_messages)
+        # Because .permalink() was broken, there will be no Archived-At header.
+        self.assertIsNone(self._msg.get('archived-at'))
+        self.assertIn('Exception in "broken" archiver', log_messages)
+        self.assertIn('RuntimeError: Cannot get permalink', log_messages)

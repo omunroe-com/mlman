@@ -603,7 +603,7 @@ class ListArchiverSet:
         for archiver_name in system_archivers:
             exists = store.query(ListArchiver).filter(
                 ListArchiver.mailing_list == mailing_list,
-                ListArchiver.name == archiver_name).first()
+                ListArchiver.name == archiver_name).one_or_none()
             if exists is None:
                 store.add(ListArchiver(mailing_list, archiver_name,
                                        system_archivers[archiver_name]))
@@ -620,4 +620,4 @@ class ListArchiverSet:
     def get(self, store, archiver_name):
         return store.query(ListArchiver).filter(
             ListArchiver.mailing_list == self._mailing_list,
-            ListArchiver.name == archiver_name).first()
+            ListArchiver.name == archiver_name).one_or_none()

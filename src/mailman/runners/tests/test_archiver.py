@@ -32,7 +32,7 @@ from mailman.interfaces.archiver import IArchiver
 from mailman.interfaces.mailinglist import IListArchiverSet
 from mailman.runners.archive import ArchiveRunner
 from mailman.testing.helpers import (
-    configuration, make_testable_runner,
+    LogFileMark, configuration, get_queue_messages, make_testable_runner,
     specialized_message_from_string as mfs)
 from mailman.testing.layers import ConfigLayer
 from mailman.utilities.datetime import RFC822_DATE_FMT, factory, now
@@ -63,6 +63,23 @@ class DummyArchiver:
         return path
 
 
+@implementer(IArchiver)
+class BrokenArchiver:
+    """An archiver that has some broken methods."""
+
+    name = 'broken'
+
+    def list_url(self, mlist):
+        raise RuntimeError('Cannot get list URL')
+
+    def permalink(self, mlist, msg):
+        raise RuntimeError('Cannot get permalink')
+
+    @staticmethod
+    def archive_message(mlist, message):
+        raise RuntimeError('Cannot archive message')
+
+
 
 class TestArchiveRunner(unittest.TestCase):
     """Test the archive runner."""
@@ -77,6 +94,9 @@ class TestArchiveRunner(unittest.TestCase):
         [archiver.dummy]
         class: mailman.runners.tests.test_archiver.DummyArchiver
         enable: no
+        [archiver.broken]
+        class: mailman.runners.tests.test_archiver.BrokenArchiver
+        enable: no
         [archiver.prototype]
         enable: no
         [archiver.mhonarc]
@@ -84,6 +104,7 @@ class TestArchiveRunner(unittest.TestCase):
         [archiver.mail_archive]
         enable: no
         """)
+        self.addCleanup(config.pop, 'dummy')
         self._archiveq = config.switchboards['archive']
         self._msg = mfs("""\
 From: aperson@example.com
@@ -96,9 +117,6 @@ First post!
 """)
         self._runner = make_testable_runner(ArchiveRunner)
         IListArchiverSet(self._mlist).get('dummy').is_enabled = True
-
-    def tearDown(self):
-        config.pop('dummy')
 
     @configuration('archiver.dummy', enable='yes')
     def test_archive_runner(self):
@@ -247,3 +265,21 @@ First post!
             listid=self._mlist.list_id)
         self._runner.run()
         self.assertEqual(os.listdir(config.MESSAGES_DIR), [])
+
+    @configuration('archiver.broken', enable='yes')
+    def test_broken_archiver(self):
+        # GL issue #208 - IArchive messages raise exceptions, breaking the
+        # rfc-2369 handler and shunting messages.
+        mark = LogFileMark('mailman.archiver')
+        self._archiveq.enqueue(
+            self._msg, {},
+            listid=self._mlist.list_id,
+            received_time=now())
+        IListArchiverSet(self._mlist).get('broken').is_enabled = True
+        self._runner.run()
+        # The archiver is broken, so there are no messages on the file system,
+        # but there is a log message and the message was not shunted.
+        log_messages = mark.read()
+        self.assertIn('Exception in "broken" archiver', log_messages)
+        self.assertIn('RuntimeError: Cannot archive message', log_messages)
+        self.assertEqual(len(get_queue_messages('shunt')), 0)
