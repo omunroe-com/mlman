@@ -32,8 +32,9 @@ from mailman.config import config
 from mailman.interfaces.languages import ILanguageManager
 from mailman.interfaces.member import MemberRole
 from mailman.interfaces.usermanager import IUserManager
-from mailman.testing.helpers import get_queue_messages, subscribe
+from mailman.testing.helpers import get_queue_messages, subscribe, set_preferred
 from mailman.testing.layers import ConfigLayer
+from mailman.utilities.datetime import now
 from zope.component import getUtility
 
 
@@ -142,3 +143,88 @@ Welcome to the Test List mailing list.
         # There is no welcome message in the virgin queue.
         messages = get_queue_messages('virgin')
         self.assertEqual(len(messages), 0)
+
+    def test_member_susbcribed_address_has_display_name(self):
+        address = getUtility(IUserManager).create_address('anne@example.com',
+            'Anne Person')
+        address.verified_on = now()
+        self._mlist.subscribe(address)
+        messages = get_queue_messages('virgin')
+        message = messages[0].msg
+        self.assertEqual(message['to'],
+            'Anne Person <anne@example.com>')
+
+    def test_member_subscribed_address_has_no_display_name(self):
+        address = getUtility(IUserManager).create_address('anne@example.com',
+            '')
+        address.verified_on = now()
+        self._mlist.subscribe(address)
+        messages = get_queue_messages('virgin')
+        message = messages[0].msg
+        self.assertEqual(message['to'],
+            'anne@example.com')
+
+    def test_member_is_user_and_has_display_name(self):
+        user = getUtility(IUserManager).create_user('anne@example.com',
+            'Anne Person')
+        set_preferred(user)
+        self._mlist.subscribe(user)
+        messages = get_queue_messages('virgin')
+        message = messages[0].msg
+        self.assertEqual(message['to'],
+            'Anne Person <anne@example.com>')
+
+    def test_member_is_user_and_has_no_display_name(self):
+        user = getUtility(IUserManager).create_user('anne@example.com',
+            '')
+        set_preferred(user)
+        self._mlist.subscribe(user)
+        messages = get_queue_messages('virgin')
+        message = messages[0].msg
+        self.assertEqual(message['to'],
+            'anne@example.com')
+
+    def test_member_has_linked_user_display_name(self):
+        user = getUtility(IUserManager).create_user('anne@example.com',
+            'Anne Person')
+        set_preferred(user)
+        self._mlist.subscribe(user)
+        address = getUtility(IUserManager).create_address('anne2@example.com',
+            '')
+        address.verified_on = now()
+        user.link(address)
+        self._mlist.subscribe(address)
+        messages = get_queue_messages('virgin')
+        message = messages[1].msg
+        self.assertEqual(message['to'],
+            'Anne Person <anne2@example.com>')
+
+    def test_member_has_no_linked_display_name(self):
+        user = getUtility(IUserManager).create_user('anne@example.com',
+            '')
+        set_preferred(user)
+        self._mlist.subscribe(user)
+        address = getUtility(IUserManager).create_address('anne2@example.com',
+            '')
+        address.verified_on = now()
+        user.link(address)
+        self._mlist.subscribe(address)
+        messages = get_queue_messages('virgin')
+        message = messages[1].msg
+        self.assertEqual(message['to'],
+            'anne2@example.com')
+
+    def test_member_has_address_and_user_display_name(self):
+        user = getUtility(IUserManager).create_user('anne@example.com',
+            'Anne Person')
+        set_preferred(user)
+        self._mlist.subscribe(user)
+        address = getUtility(IUserManager).create_address('anne2@example.com',
+            'Anne Person 2')
+        address.verified_on = now()
+        user.link(address)
+        self._mlist.subscribe(address)
+        messages = get_queue_messages('virgin')
+        message = messages[1].msg
+        self.assertEqual(message['to'],
+            'Anne Person 2 <anne2@example.com>')
