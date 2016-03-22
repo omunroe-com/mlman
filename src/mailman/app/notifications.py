@@ -77,7 +77,13 @@ def send_welcome_message(mlist, member, language, text=''):
     welcome_message = _get_message(mlist.welcome_message_uri, mlist, language)
     options_url = member.options_url
     # Get the text from the template.
-    display_name = ('' if member.user is None else member.user.display_name)
+    if member.subscriber.display_name:
+        display_name = member.subscriber.display_name
+    elif member.user:
+        display_name = ('' if member.user.display_name is None
+            else member.user.display_name)
+    else:
+        display_name = ''
     text = expand(welcome_message, dict(
         fqdn_listname=mlist.fqdn_listname,
         list_name=mlist.display_name,
