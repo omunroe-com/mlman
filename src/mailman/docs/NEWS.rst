@@ -25,6 +25,8 @@ Bugs
    Bompard.  (Closes #203)
  * Don't let crashes in IArchiver plugins break handlers or runners.
    (Closes #208)
+ * Fix "None" as display name in welcome message.  Given by Aditya Divekar.
+   (Closes #194)
 
 
 3.0.2 -- "Show Don't Tell"

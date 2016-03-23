@@ -76,14 +76,19 @@ def send_welcome_message(mlist, member, language, text=''):
     """
     welcome_message = _get_message(mlist.welcome_message_uri, mlist, language)
     options_url = member.options_url
-    # Get the text from the template.
+    # Try to find a non-empty display name.  We first look at the directly
+    # subscribed record, which will either be the address or the user.  That's
+    # handled automatically by going through member.subscriber.  If that
+    # doesn't give us something useful, try whatever user is linked to the
+    # subscriber.
     if member.subscriber.display_name:
         display_name = member.subscriber.display_name
-    elif member.user:
-        display_name = ('' if member.user.display_name is None
-            else member.user.display_name)
+    # If an unlinked address is subscribed tehre will be no .user.
+    elif member.user is not None and member.user.display_name:
+        display_name = member.user.display_name
     else:
         display_name = ''
+    # Get the text from the template.
     text = expand(welcome_message, dict(
         fqdn_listname=mlist.fqdn_listname,
         list_name=mlist.display_name,

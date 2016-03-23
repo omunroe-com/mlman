@@ -121,12 +121,14 @@ class _Bag:
             setattr(self, key, value)
 
 
-def get_queue_messages(queue_name, sort_on=None):
+def get_queue_messages(queue_name, sort_on=None, expected_count=None):
     """Return and clear all the messages in the given queue.
 
     :param queue_name: A string naming a queue.
     :param sort_on: The message header to sort on.  If None (the default),
         no sorting is performed.
+    :param expected_count: If given and there aren't exactly this number of
+        messages in the queue, raise an AssertionError.
     :return: A list of 2-tuples where each item contains the message and
         message metadata.
     """
@@ -136,6 +138,9 @@ def get_queue_messages(queue_name, sort_on=None):
         msg, msgdata = queue.dequeue(filebase)
         messages.append(_Bag(msg=msg, msgdata=msgdata))
         queue.finish(filebase)
+    if expected_count is not None:
+        assert len(messages) == expected_count, 'Wanted {}, got {}'.format(
+            expected_count, len(messages))
     if sort_on is not None:
         messages.sort(key=lambda item: str(item.msg[sort_on]))
     return messages
