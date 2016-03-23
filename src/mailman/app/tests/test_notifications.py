@@ -32,11 +32,20 @@ from mailman.config import config
 from mailman.interfaces.languages import ILanguageManager
 from mailman.interfaces.member import MemberRole
 from mailman.interfaces.usermanager import IUserManager
-from mailman.testing.helpers import (
-    get_queue_messages, set_preferred, subscribe)
+from mailman.testing.helpers import get_queue_messages, subscribe
 from mailman.testing.layers import ConfigLayer
 from mailman.utilities.datetime import now
 from zope.component import getUtility
+
+
+
+def _set_preferred(user):
+    # Avoid circular imports.
+    from mailman.utilities.datetime import now
+    preferred = list(user.addresses)[0]
+    preferred.verified_on = now()
+    user.preferred_address = preferred
+    return preferred
 
 
 
@@ -165,7 +174,7 @@ Welcome to the Test List mailing list.
     def test_member_is_user_and_has_display_name(self):
         user = getUtility(IUserManager).create_user(
             'anne@example.com', 'Anne Person')
-        set_preferred(user)
+        _set_preferred(user)
         self._mlist.subscribe(user)
         messages = get_queue_messages('virgin', expected_count=1)
         message = messages[0].msg
@@ -173,7 +182,7 @@ Welcome to the Test List mailing list.
 
     def test_member_is_user_and_has_no_display_name(self):
         user = getUtility(IUserManager).create_user('anne@example.com')
-        set_preferred(user)
+        _set_preferred(user)
         self._mlist.subscribe(user)
         messages = get_queue_messages('virgin', expected_count=1)
         message = messages[0].msg
@@ -182,7 +191,7 @@ Welcome to the Test List mailing list.
     def test_member_has_linked_user_display_name(self):
         user = getUtility(IUserManager).create_user(
             'anne@example.com', 'Anne Person')
-        set_preferred(user)
+        _set_preferred(user)
         address = getUtility(IUserManager).create_address('anne2@example.com')
         address.verified_on = now()
         user.link(address)
@@ -193,7 +202,7 @@ Welcome to the Test List mailing list.
 
     def test_member_has_no_linked_display_name(self):
         user = getUtility(IUserManager).create_user('anne@example.com')
-        set_preferred(user)
+        _set_preferred(user)
         address = getUtility(IUserManager).create_address('anne2@example.com')
         address.verified_on = now()
         user.link(address)
@@ -205,7 +214,7 @@ Welcome to the Test List mailing list.
     def test_member_has_address_and_user_display_name(self):
         user = getUtility(IUserManager).create_user(
             'anne@example.com', 'Anne Person')
-        set_preferred(user)
+        _set_preferred(user)
         address = getUtility(IUserManager).create_address(
             'anne2@example.com', 'Anne X Person')
         address.verified_on = now()
