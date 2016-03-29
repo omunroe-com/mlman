@@ -10,7 +10,7 @@ Here is a history of user visible changes to Mailman.
 
 3.0.3 -- "Show Don't Tell"
 ==========================
-(2016-XX-XX)
+(2016-03-29)
 
 Bugs
 ----
@@ -27,6 +27,7 @@ Bugs
    (Closes #208)
  * Fix "None" as display name in welcome message.  Given by Aditya Divekar.
    (Closes #194)
+ * Pin the Falcon version to < 1.0.
 
 
 3.0.2 -- "Show Don't Tell"
