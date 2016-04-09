@@ -147,7 +147,8 @@ class Withlist:
                 abort=config.db.abort,
                 config=config,
                 )
-            banner = config.shell.banner + '\n' + banner
+            banner = config.shell.banner + '\n' + (
+                banner if isinstance(banner, str) else '')
             if as_boolean(config.shell.use_ipython):
                 self._start_ipython(overrides, banner)
             else:
