@@ -33,6 +33,7 @@ Bugs
  * Fix "None" as display name in welcome message.  Given by Aditya Divekar.
    (Closes #194)
  * Pin the Falcon version to < 1.0.
+ * Fix ``mailman shell`` processing of ``$PYTHONSTARTUP``.  (Closes #224)
 
 
 3.0.2 -- "Show Don't Tell"

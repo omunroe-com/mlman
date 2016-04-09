@@ -26,7 +26,7 @@ import os
 import sys
 import code
 
-DEFAULT_BANNER = ''
+DEFAULT_BANNER = object()
 
 
 
@@ -35,7 +35,7 @@ def interact(upframe=True, banner=DEFAULT_BANNER, overrides=None):
 
     :param upframe: Whether or not to populate the interpreter's globals with
         the locals from the frame that called this function.
-    :type upfframe: bool
+    :type upframe: bool
     :param banner: The banner to print before the interpreter starts.
     :type banner: string
     :param overrides: Additional interpreter globals to add.
@@ -62,16 +62,12 @@ def interact(upframe=True, banner=DEFAULT_BANNER, overrides=None):
     # than once, this could cause a problem.
     startup = os.environ.get('PYTHONSTARTUP')
     if startup:
-        try:
-            execfile(startup, namespace)
-        except:
-            pass
+        with open(startup, 'r', encoding='utf-8') as fp:
+            interp.runcode(compile(fp.read(), startup, 'exec'))
     # We don't want the funky console object in parentheses in the banner.
-    if banner == DEFAULT_BANNER:
+    if banner is DEFAULT_BANNER:
         banner = '''\
 Python %s on %s
 Type "help", "copyright", "credits" or "license" for more information.''' % (
             sys.version, sys.platform)
-    elif not banner:
-        banner = None
     interp.interact(banner)

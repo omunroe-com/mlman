@@ -28,6 +28,7 @@ __all__ = [
     'get_lmtp_client',
     'get_nntp_server',
     'get_queue_messages',
+    'hackenv',
     'make_digest_messages',
     'make_testable_runner',
     'reset_the_world',
@@ -561,3 +562,22 @@ message triggering a digest
         volume=1, digest_number=1)
     runner = make_testable_runner(DigestRunner, 'digest')
     runner.run()
+
+
+@contextmanager
+def hackenv(envar, new_value):
+    """Hack the environment temporarily, then reset it."""
+    old_value = os.getenv(envar)
+    if new_value is None:
+        if envar in os.environ:
+            del os.environ[envar]
+    else:
+        os.environ[envar] = new_value
+    try:
+        yield
+    finally:
+        if old_value is None:
+            if envar in os.environ:
+                del os.environ[envar]
+        else:
+            os.environ[envar] = old_value

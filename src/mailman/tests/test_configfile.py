@@ -32,6 +32,7 @@ import unittest
 
 from contextlib import contextmanager
 from mailman.core.initialize import search_for_configuration_file
+from mailman.testing.helpers import hackenv
 
 
 
@@ -44,20 +45,6 @@ def fakedirs(path):
         yield
     finally:
         shutil.rmtree(path)
-
-
-@contextmanager
-def hackenv(envar, new_value):
-    """Hack the environment temporarily, then reset it."""
-    old_value = os.getenv(envar)
-    os.environ[envar] = new_value
-    try:
-        yield
-    finally:
-        if old_value is None:
-            del os.environ[envar]
-        else:
-            os.environ[envar] = old_value
 
 
 @contextmanager
