@@ -38,7 +38,7 @@ class TestInteract(unittest.TestCase):
         resources = ExitStack()
         self.addCleanup(resources.close)
         self._enter = resources.enter_context
-        self._enter(patch('code.input', side_effect=EOFError))
+        self._enter(patch('builtins.input', side_effect=EOFError))
         self._stderr = StringIO()
         self._enter(patch('sys.stderr', self._stderr))
 
