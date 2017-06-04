@@ -8,6 +8,11 @@ Copyright (C) 1998-2017 by the Free Software Foundation, Inc.
 Here is a history of user visible changes to Mailman.
 
 
+3.1.1
+=====
+(201X-XX-XXX)
+
+
 3.1.0 -- "Between The Wheels"
 =============================
 (2017-05-25)
