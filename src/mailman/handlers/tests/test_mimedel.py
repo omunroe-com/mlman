@@ -43,22 +43,34 @@ from zope.component import getUtility
 
 
 @contextmanager
-def dummy_script():
+def dummy_script(arg=''):
+    exe = sys.executable
+    extra = ''
+    if arg == 'scripterr':
+        extra = 'error'
     with ExitStack() as resources:
         tempdir = tempfile.mkdtemp()
         resources.callback(shutil.rmtree, tempdir)
         filter_path = os.path.join(tempdir, 'filter.py')
+        if arg in ('noperm', 'nonexist'):
+            exe = filter_path
         with open(filter_path, 'w', encoding='utf-8') as fp:
             print("""\
 import sys
+if len(sys.argv) > 2:
+    sys.exit(1)
 print('Converted text/html to text/plain')
 print('Filename:', sys.argv[1])
 """, file=fp)
         config.push('dummy script', """\
 [mailman]
-html_to_plain_text_command = {exe} {script} $filename
-""".format(exe=sys.executable, script=filter_path))
+html_to_plain_text_command = {exe} {script} {extra} $filename
+""".format(exe=exe, script=filter_path, extra=extra))
         resources.callback(config.pop, 'dummy script')
+        if arg == 'nonexist':
+            os.rename(filter_path, filter_path + 'xxx')
+        elif arg == 'noperm':
+            os.chmod(filter_path, 0o644)
         yield
 
 
@@ -219,6 +231,70 @@ MIME-Version: 1.0
             msg['x-content-filtered-by'].startswith('Mailman/MimeDel'))
         payload_lines = msg.get_payload().splitlines()
         self.assertEqual(payload_lines[0], 'Converted text/html to text/plain')
+
+    def test_convert_html_to_plaintext_error_return(self):
+        # Calling a script which returns an error status is properly logged.
+        msg = mfs("""\
+From: aperson@example.com
+Content-Type: text/html
+MIME-Version: 1.0
+
+<html><head></head>
+<body></body></html>
+""")
+        process = config.handlers['mime-delete'].process
+        mark = LogFileMark('mailman.error')
+        with dummy_script('scripterr'):
+            process(self._mlist, msg, {})
+        line = mark.readline()[:-1]
+        self.assertTrue(line.endswith('HTML -> text/plain command error'))
+        self.assertEqual(msg.get_content_type(), 'text/html')
+        self.assertIsNone(msg['x-content-filtered-by'])
+        payload_lines = msg.get_payload().splitlines()
+        self.assertEqual(payload_lines[0], '<html><head></head>')
+
+    def test_missing_html_to_plain_text_command(self):
+        # Calling a missing html_to_plain_text_command is properly logged.
+        msg = mfs("""\
+From: aperson@example.com
+Content-Type: text/html
+MIME-Version: 1.0
+
+<html><head></head>
+<body></body></html>
+""")
+        process = config.handlers['mime-delete'].process
+        mark = LogFileMark('mailman.error')
+        with dummy_script('nonexist'):
+            process(self._mlist, msg, {})
+        line = mark.readline()[:-1]
+        self.assertTrue(line.endswith('HTML -> text/plain command error'))
+        self.assertEqual(msg.get_content_type(), 'text/html')
+        self.assertIsNone(msg['x-content-filtered-by'])
+        payload_lines = msg.get_payload().splitlines()
+        self.assertEqual(payload_lines[0], '<html><head></head>')
+
+    def test_no_permission_html_to_plain_text_command(self):
+        # Calling an html_to_plain_text_command without permission is
+        # properly logged.
+        msg = mfs("""\
+From: aperson@example.com
+Content-Type: text/html
+MIME-Version: 1.0
+
+<html><head></head>
+<body></body></html>
+""")
+        process = config.handlers['mime-delete'].process
+        mark = LogFileMark('mailman.error')
+        with dummy_script('noperm'):
+            process(self._mlist, msg, {})
+        line = mark.readline()[:-1]
+        self.assertTrue(line.endswith('HTML -> text/plain command error'))
+        self.assertEqual(msg.get_content_type(), 'text/html')
+        self.assertIsNone(msg['x-content-filtered-by'])
+        payload_lines = msg.get_payload().splitlines()
+        self.assertEqual(payload_lines[0], '<html><head></head>')
 
 
 class TestMiscellaneous(unittest.TestCase):
