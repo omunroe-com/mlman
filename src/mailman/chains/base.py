@@ -21,6 +21,7 @@ from mailman.config import config
 from mailman.interfaces.chain import (
     IChain, IChainIterator, IChainLink, IMutableChain, LinkAction)
 from mailman.interfaces.rules import IRule
+from mailman.utilities.modules import abstract_component
 from public import public
 from zope.interface import implementer
 
@@ -55,6 +56,7 @@ class Link:
 
 
 @public
+@abstract_component
 @implementer(IChain, IChainIterator)
 class TerminalChainBase:
     """A base chain that always matches and executes a method.

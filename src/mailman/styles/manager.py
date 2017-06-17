@@ -20,7 +20,7 @@
 from mailman.interfaces.configuration import ConfigurationUpdatedEvent
 from mailman.interfaces.styles import (
     DuplicateStyleError, IStyle, IStyleManager)
-from mailman.utilities.modules import find_components
+from mailman.utilities.modules import add_components
 from public import public
 from zope.component import getUtility
 from zope.interface import implementer
@@ -44,13 +44,7 @@ class StyleManager:
         paths = filter(None, (path.strip()
                               for path in config.styles.paths.splitlines()))
         for path in paths:
-            for style_class in find_components(path, IStyle):
-                style = style_class()
-                verifyObject(IStyle, style)
-                assert style.name not in self._styles, (
-                    'Duplicate style "{}" found in {}'.format(
-                        style.name, style_class))
-                self._styles[style.name] = style
+            add_components(path, IStyle, self._styles)
 
     def get(self, name):
         """See `IStyleManager`."""
