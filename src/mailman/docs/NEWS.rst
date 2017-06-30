@@ -11,11 +11,11 @@ Here is a history of user visible changes to Mailman.
 3.1.1
 =====
 (201X-XX-XXX)
-
   * An AttributeError: 'str' object has no attribute 'decode' exception in
     subject prefixing is fixed.  (Closes #359)
   * Syntactically invalid sender addresses are now ignored.  (Closes #229)
-
+  * Messages with no syntactically valid senders are now automatically
+   discarded.  (Closes #369)
 
 3.1.0 -- "Between The Wheels"
 =============================

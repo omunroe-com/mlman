@@ -268,10 +268,10 @@ This message will end up in the `pipeline` queue.
     Message-ID: <first>
     Message-ID-Hash: 4CMWUN6BHVCMHMDAOSJZ2Q72G5M32MWB
     X-Message-ID-Hash: 4CMWUN6BHVCMHMDAOSJZ2Q72G5M32MWB
-    X-Mailman-Rule-Misses: dmarc-mitigation; approved; emergency; loop;
-        banned-address; member-moderation; nonmember-moderation; administrivia;
-        implicit-dest; max-recipients; max-size; news-moderation; no-subject;
-        suspicious-header
+    X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency;
+        loop; banned-address; member-moderation; nonmember-moderation;
+        administrivia; implicit-dest; max-recipients; max-size;
+        news-moderation; no-subject; suspicious-header
     <BLANKLINE>
     An important message.
     <BLANKLINE>
@@ -293,6 +293,7 @@ hit and all rules that have missed.
     max-size
     member-moderation
     news-moderation
+    no-senders
     no-subject
     nonmember-moderation
     suspicious-header

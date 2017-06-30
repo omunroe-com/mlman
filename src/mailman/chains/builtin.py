@@ -42,6 +42,8 @@ class BuiltInChain:
         # jump to the moderation chain to do the action.  Otherwise, the rule
         # misses buts sets msgdata['dmarc'] for the handler.
         ('dmarc-mitigation', LinkAction.jump, 'moderation'),
+        # Discard emails with no valid senders.
+        ('no-senders', LinkAction.jump, 'discard'),
         ('approved', LinkAction.jump, 'accept'),
         ('emergency', LinkAction.jump, 'hold'),
         ('loop', LinkAction.jump, 'discard'),
