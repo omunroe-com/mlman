@@ -8,9 +8,14 @@ Copyright (C) 1998-2017 by the Free Software Foundation, Inc.
 Here is a history of user visible changes to Mailman.
 
 
+
 3.1.1
 =====
 (201X-XX-XXX)
+
+  * An AttributeError: 'str' object has no attribute 'decode' exception in
+    subject prefixing is fixed.  (Closes #359)
+
 
 
 3.1.0 -- "Between The Wheels"

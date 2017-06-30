@@ -22,7 +22,9 @@ import unittest
 from mailman.app.lifecycle import create_list
 from mailman.config import config
 from mailman.email.message import Message
+from mailman.interfaces.languages import ILanguageManager
 from mailman.testing.layers import ConfigLayer
+from zope.component import getUtility
 
 
 class TestSubjectPrefix(unittest.TestCase):
@@ -121,3 +123,16 @@ class TestSubjectPrefix(unittest.TestCase):
             subject.encode(),
             '[Test 456] Re: =?iso-2022-jp?b?GyRCJWEhPCVrJV4lcxsoQg==?=')
         self.assertEqual(str(subject), '[Test 456] Re: メールマン')
+
+    def test_decode_header_returns_string(self):
+        # Under some circumstances, email.header.decode_header() returns a
+        # string value.  Ensure we can handle that.
+        manager = getUtility(ILanguageManager)
+        manager.add('xx', 'iso-8859-1', 'Xlandia')
+        self._mlist.preferred_language = 'xx'
+        msg = Message()
+        msg['Subject'] = 'Plain text'
+        self._process(self._mlist, msg, {})
+        subject = msg['subject']
+        self.assertEqual(subject.encode(),
+                         '=?iso-8859-1?q?=5BTest=5D_?= Plain text')
