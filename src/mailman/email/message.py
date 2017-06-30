@@ -30,7 +30,9 @@ import email.utils
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from mailman.config import config
+from mailman.interfaces.address import IEmailValidator
 from public import public
+from zope.component import getUtility
 
 
 COMMASPACE = ', '
@@ -96,13 +98,17 @@ class Message(email.message.Message):
                     # Convert the header to str in case it's a Header instance.
                     name, address = email.utils.parseaddr(str(field_value))
                     senders.append(address.lower())
-        # Filter out None and the empty string, and convert to unicode.
+        # Filter out invalid addresses, None and the empty string, and convert
+        # to unicode.
         clean_senders = []
+        validator = getUtility(IEmailValidator)
         for sender in senders:
             if not sender:
                 continue
             if isinstance(sender, bytes):
                 sender = sender.decode('ascii')
+            if not validator.is_valid(sender):
+                continue
             clean_senders.append(sender)
         return clean_senders
 
