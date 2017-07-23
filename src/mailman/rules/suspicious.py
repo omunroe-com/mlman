@@ -60,7 +60,7 @@ def _parse_matching_header_opt(mlist):
             # This didn't look like a header line.  BAW: should do a
             # better job of informing the list admin.
             log.error('bad bounce_matching_header line: %s\n%s',
-                      mlist.display_name, line)
+                      mlist.list_id, line)
         else:
             header = line[:i]
             value = line[i+1:].lstrip()
@@ -71,7 +71,7 @@ def _parse_matching_header_opt(mlist):
                 # job of informing the list admin.
                 log.error("""\
 bad regexp in bounce_matching_header line: %s
-\n%s (cause: %s)""", mlist.display_name, value, error)
+"%s" (cause: %s)""", mlist.list_id, value, error)
             else:
                 all.append((header, cre, line))
     return all

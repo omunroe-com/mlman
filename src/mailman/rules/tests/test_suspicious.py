@@ -24,17 +24,24 @@ from email.header import Header
 from mailman.app.lifecycle import create_list
 from mailman.email.message import Message
 from mailman.rules import suspicious
+from mailman.testing.helpers import (
+    LogFileMark, specialized_message_from_string as mfs)
 from mailman.testing.layers import ConfigLayer
 
 
 class TestSuspicious(unittest.TestCase):
-    """Test the suspicious rule."""
-
     layer = ConfigLayer
+    maxDiff = None
 
     def setUp(self):
-        self._mlist = create_list('test@example.com')
+        self._mlist = create_list('ant@example.com')
         self._rule = suspicious.SuspiciousHeader()
+        self._msg = mfs("""\
+From: aperson@example.com
+To: ant@example.com
+Subject: A message
+
+""")
 
     def test_header_instance(self):
         msg = Message()
@@ -55,3 +62,29 @@ class TestSuspicious(unittest.TestCase):
             [('Header "{}" matched a bounce_matching_header line',
               'spam@example.com')]
             )
+
+    def test_bounce_matching_header_not_a_header(self):
+        mark = LogFileMark('mailman.error')
+        self._mlist.bounce_matching_headers = 'This is not a header'
+        result = self._rule.check(self._mlist, self._msg, {})
+        self.assertFalse(result)
+        log_lines = mark.read().splitlines()
+        self.assertEqual(
+            log_lines[0][-48:],
+            'bad bounce_matching_header line: ant.example.com')
+        self.assertEqual(
+            log_lines[1][-20:],
+            'This is not a header')
+
+    def test_bounce_matching_header_not_a_regexp(self):
+        mark = LogFileMark('mailman.error')
+        self._mlist.bounce_matching_headers = 'From: [a-z'
+        result = self._rule.check(self._mlist, self._msg, {})
+        self.assertFalse(result)
+        log_lines = mark.read().splitlines()
+        self.assertEqual(
+            log_lines[0][-58:],
+            'bad regexp in bounce_matching_header line: ant.example.com')
+        self.assertEqual(
+            log_lines[1][-56:],
+            '"[a-z" (cause: unterminated character set at position 0)')
