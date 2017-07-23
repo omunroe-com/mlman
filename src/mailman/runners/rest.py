@@ -72,10 +72,10 @@ class RESTRunner(Runner):
             self._event.set()
 
     def _one_iteration(self):
-        # Just keep going
-        if self._thread.is_alive():
+        # Just keep going.
+        if self._thread.is_alive():                 # pragma: nocover
             self._thread.join(timeout=0.1)
         return 1
 
-    def _snooze(self, filecnt):
+    def _snooze(self, filecnt):                     # pragma: nocover
         pass

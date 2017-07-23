@@ -19,11 +19,12 @@
 
 import unittest
 
+from itertools import count
 from mailman.app.lifecycle import create_list
 from mailman.config import config
 from mailman.runners.retry import RetryRunner
 from mailman.testing.helpers import (
-    get_queue_messages, make_testable_runner,
+    configuration, get_queue_messages, make_testable_runner,
     specialized_message_from_string as message_from_string)
 from mailman.testing.layers import ConfigLayer
 
@@ -37,7 +38,6 @@ class TestRetryRunner(unittest.TestCase):
         self._mlist = create_list('test@example.com')
         self._retryq = config.switchboards['retry']
         self._outq = config.switchboards['out']
-        self._runner = make_testable_runner(RetryRunner, 'retry')
         self._msg = message_from_string("""\
 From: anne@example.com
 To: test@example.com
@@ -48,5 +48,16 @@ Message-Id: <first>
 
     def test_message_put_in_outgoing_queue(self):
         self._retryq.enqueue(self._msg, self._msgdata)
-        self._runner.run()
+        runner = make_testable_runner(RetryRunner, 'retry')
+        runner.run()
         get_queue_messages('out', expected_count=1)
+
+    @configuration('runner.retry', sleep_time='0.5s')
+    def test_retry_snooze(self):
+        countdown = count(2, -1)
+        def positive(runner):                     # noqa: E306
+            return next(countdown) <= 0
+        runner = make_testable_runner(RetryRunner, 'retry', positive)
+        runner.run()
+        # We snoozed at least once.
+        self.assertEqual(next(countdown), -1)
