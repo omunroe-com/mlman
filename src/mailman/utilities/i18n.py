@@ -146,14 +146,14 @@ def find(template_file, mlist=None, language=None, _trace=False):
     raw_search_order = search(template_file, mlist, language)
     for path in raw_search_order:
         try:
-            if _trace:
+            if _trace:                              # pragma: nocover
                 print('@@@', path, end='', file=sys.stderr)
             fp = open(path, 'r', encoding='utf-8')
         except FileNotFoundError:
-            if _trace:
+            if _trace:                              # pragma: nocover
                 print(' MISSING', file=sys.stderr)
         else:
-            if _trace:
+            if _trace:                              # pragma: nocover
                 print(' FOUND:', path, file=sys.stderr)
             return path, fp
     raise TemplateNotFoundError(template_file)
