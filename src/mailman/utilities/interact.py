@@ -72,6 +72,6 @@ Type "help", "copyright", "credits" or "license" for more information.''' % (
     # configuring it.  For consistency between Python 3.6 and earlier
     # versions, suppress the exit message if possible.
     kws = dict(banner=banner)
-    if 'exitmsg' in signature(interp.interact).parameters:
+    if 'exitmsg' in signature(interp.interact).parameters:   # pragma: nobranch
         kws['exitmsg'] = ''
     interp.interact(**kws)

@@ -56,7 +56,7 @@ def add_message_hash(msg):
     message_id = msg.get('message-id')
     if message_id is None:
         return
-    if isinstance(message_id, bytes):
+    if isinstance(message_id, bytes):               # pragma: nocover
         message_id = message_id.decode('ascii')
     # The angle brackets are not part of the Message-ID.  See RFC 2822
     # and http://wiki.list.org/display/DEV/Stable+URLs
