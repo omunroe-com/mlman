@@ -50,7 +50,7 @@ class TestLifecycle(unittest.TestCase):
     @configuration('mailman', listname_chars='[a-z0-9-+\]')
     def test_bad_config_listname_chars(self):
         mark = LogFileMark('mailman.error')
-        # This list create should succeed but log an error
+        # This list create should succeed but log an error.
         mlist = create_list('test@example.com')
         # Check the error log.
         self.assertRegex(
@@ -66,9 +66,14 @@ class TestLifecycle(unittest.TestCase):
     @configuration('mailman', listname_chars='[a-z]')
     def test_listname_with_minimal_listname_chars(self):
         # This only allows letters in the listname.  A listname with digits
-        # Raises an exception.
+        # raises an exception.
         self.assertRaises(InvalidListNameError,
                           create_list, 'list1@example.com')
+
+    @configuration('mailman', listname_chars='')
+    def test_listname_without_listname_chars(self):
+        mlist = create_list('_+$@example.com')
+        self.assertEqual(mlist.fqdn_listname, '_+$@example.com')
 
     def test_unregistered_domain(self):
         # Creating a list with an unregistered domain raises an exception.
