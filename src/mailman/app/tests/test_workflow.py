@@ -76,6 +76,9 @@ class TestWorkflow(unittest.TestCase):
     def setUp(self):
         self._workflow = iter(MyWorkflow())
 
+    def test_workflow_name(self):
+        self.assertEqual(self._workflow.name, 'MyWorkflow')
+
     def test_basic_workflow(self):
         # The work flows from one state to the next.
         results = list(self._workflow)
