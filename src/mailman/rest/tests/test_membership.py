@@ -703,3 +703,21 @@ class TestAPI31Members(unittest.TestCase):
         self.assertEqual(
             cm.exception.reason,
             'anne@example.com is already an owner of ant@example.com')
+
+
+class TestMemberCornerCases(unittest.TestCase):
+    layer = RESTLayer
+
+    def setUp(self):
+        with transaction():
+            self._mlist = create_list('ant@example.com')
+
+    def test_bad_find_bad_member_role(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api(
+                'http://localhost:9001/3.0/members/find', dict(
+                    role='bad role',
+                    ))
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason,
+                         'Cannot convert parameters: role')
