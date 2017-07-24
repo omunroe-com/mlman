@@ -76,10 +76,16 @@ def subscriber_validator(api):
             return api.to_uuid(subscriber)
         except ValueError:
             # It must be an email address.
-            if getUtility(IEmailValidator).is_valid(subscriber):
-                return subscriber
-            raise ValueError
+            return email_validator(subscriber)
     return _inner
+
+
+@public
+def email_validator(email):
+    # It must be an email address.
+    if getUtility(IEmailValidator).is_valid(email):
+        return email
+    raise ValueError
 
 
 @public

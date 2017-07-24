@@ -68,7 +68,7 @@ class ReadOnlyPreferences:
 class Preferences(ReadOnlyPreferences):
     """Preferences which can be changed."""
 
-    def patch_put(self, request, response, is_optional):
+    def _patch_put(self, request, response, is_optional):
         if self._parent is None:
             not_found(response)
             return
@@ -93,11 +93,11 @@ class Preferences(ReadOnlyPreferences):
 
     def on_patch(self, request, response):
         """Patch the preferences."""
-        self.patch_put(request, response, is_optional=True)
+        self._patch_put(request, response, is_optional=True)
 
     def on_put(self, request, response):
         """Change all preferences."""
-        self.patch_put(request, response, is_optional=False)
+        self._patch_put(request, response, is_optional=False)
 
     def on_delete(self, request, response):
         """Delete all preferences."""

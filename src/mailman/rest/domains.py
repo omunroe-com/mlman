@@ -71,10 +71,11 @@ class ADomain(_DomainBase):
         else:
             no_content(response)
 
-    def patch_put(self, request, response, is_optional):
+    def _patch_put(self, request, response, is_optional):
         domain = getUtility(IDomainManager).get(self._domain)
         if domain is None:
             not_found(response)
+            return
         kws = dict(
             description=GetterSetter(str),
             owner=ListOfDomainOwners(list_of_strings_validator),
@@ -91,11 +92,11 @@ class ADomain(_DomainBase):
 
     def on_put(self, request, response):
         """Update all the domain except mail_host"""
-        self.patch_put(request, response, is_optional=False)
+        self._patch_put(request, response, is_optional=False)
 
     def on_patch(self, request, response):
         """Patch some domain attributes."""
-        self.patch_put(request, response, is_optional=True)
+        self._patch_put(request, response, is_optional=True)
 
     @child()
     def lists(self, context, segments):

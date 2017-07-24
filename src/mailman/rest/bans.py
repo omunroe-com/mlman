@@ -21,7 +21,7 @@ from mailman.interfaces.bans import IBanManager
 from mailman.rest.helpers import (
     CollectionMixin, bad_request, child, created, etag, no_content, not_found,
     okay)
-from mailman.rest.validator import Validator
+from mailman.rest.validator import Validator, email_validator
 from public import public
 
 
@@ -95,7 +95,7 @@ class BannedEmails(_BannedBase, CollectionMixin):
 
     def on_post(self, request, response):
         """Ban some email from subscribing."""
-        validator = Validator(email=str)
+        validator = Validator(email=email_validator)
         try:
             email = validator(request)['email']
         except ValueError as error:

@@ -42,21 +42,22 @@ REALM = 'mailman3-rest'
 class AdminWSGIServer(WSGIServer):
     """Server class that integrates error handling with our log files."""
 
-    def handle_error(self, request, client_address):
+    def handle_error(self, request, client_address):   # pragma: nocover
         # Interpose base class method so that the exception gets printed to
         # our log file rather than stderr.
-        log.exception('REST server exception during request from %s',
-                      client_address)
+        log.exception(
+            'REST server exception during request from %s',
+            client_address)
 
 
 class StderrLogger:
     def __init__(self):
         self._buffer = []
 
-    def write(self, message):
+    def write(self, message):                       # pragma: nocover
         self._buffer.append(message)
 
-    def flush(self):
+    def flush(self):                                # pragma: nocover
         self._buffer.insert(0, 'REST request handler error:\n')
         log.error(EMPTYSTRING.join(self._buffer))
         self._buffer = []

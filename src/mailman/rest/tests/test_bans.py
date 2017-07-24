@@ -86,3 +86,23 @@ class TestBans(unittest.TestCase):
         with self.assertRaises(HTTPError) as cm:
             call_api('http://localhost:9001/3.0/lists/bee.example.com/bans')
         self.assertEqual(cm.exception.code, 404)
+
+    def test_ban_bad_email_address(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api(
+                'http://localhost:9001/3.0/lists/ant.example.com/bans', dict(
+                    email='|^@example.com',
+                    ))
+        self.assertEqual(cm.exception.code, 400)
+
+    def test_ban_twice(self):
+        call_api('http://localhost:9001/3.0/lists/ant.example.com/bans', dict(
+            email='anne@example.com',
+            ))
+        with self.assertRaises(HTTPError) as cm:
+            call_api(
+                'http://localhost:9001/3.0/lists/ant.example.com/bans', dict(
+                    email='anne@example.com',
+                    ))
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason, 'Address is already banned')

@@ -349,7 +349,7 @@ class ListArchivers:
                     if archiver.system_archiver.is_enabled}
         okay(response, etag(resource))
 
-    def patch_put(self, request, response, is_optional):
+    def _patch_put(self, request, response, is_optional):
         archiver_set = IListArchiverSet(self._mlist)
         kws = {archiver.name: ArchiverGetterSetter(self._mlist)
                for archiver in archiver_set.archivers
@@ -366,11 +366,11 @@ class ListArchivers:
 
     def on_put(self, request, response):
         """Update all the archiver statuses."""
-        self.patch_put(request, response, is_optional=False)
+        self._patch_put(request, response, is_optional=False)
 
     def on_patch(self, request, response):
         """Patch some archiver statueses."""
-        self.patch_put(request, response, is_optional=True)
+        self._patch_put(request, response, is_optional=True)
 
 
 @public

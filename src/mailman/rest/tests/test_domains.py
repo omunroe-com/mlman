@@ -167,6 +167,33 @@ class TestDomains(unittest.TestCase):
                      method='DELETE')
         self.assertEqual(cm.exception.code, 404)
 
+    def test_patch_missing_domain(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api(
+                'http://localhost:9001/3.0/domains/example.org', dict(
+                    description='Nonexistent domain',
+                    ),
+                method='PATCH')
+        self.assertEqual(cm.exception.code, 404)
+
+    def test_put_domain_changes(self):
+        content, response = call_api(
+            'http://localhost:9001/3.0/domains/example.com', dict(
+                description='The Example domain',
+                owner=['anne@example.com', 'bart@example.com'],
+                ),
+            method='PUT')
+        self.assertEqual(response.status_code, 204)
+        domain = getUtility(IDomainManager).get('example.com')
+        self.assertEqual(domain.description, 'The Example domain')
+        owner_addresses = set()
+        for owner in domain.owners:
+            for address in owner.addresses:
+                owner_addresses.add(address.email)
+        self.assertEqual(
+            {'anne@example.com', 'bart@example.com'},
+            owner_addresses)
+
 
 class TestDomainOwners(unittest.TestCase):
     layer = RESTLayer
