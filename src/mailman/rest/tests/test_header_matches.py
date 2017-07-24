@@ -51,6 +51,17 @@ class TestHeaderMatches(unittest.TestCase):
         self.assertEqual(cm.exception.reason,
                          'No header match at this position: 0')
 
+    def test_patch_put_missing_header_match(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/lists/ant.example.com'
+                     '/header-matches/0', dict(
+                         header='From',
+                         ),
+                     method='PATCH')
+        self.assertEqual(cm.exception.code, 404)
+        self.assertEqual(cm.exception.reason,
+                         'No header match at this position: 0')
+
     def test_add_duplicate(self):
         header_matches = IHeaderMatchList(self._mlist)
         with transaction():
@@ -70,3 +81,30 @@ class TestHeaderMatches(unittest.TestCase):
             call_api('http://localhost:9001/3.0/lists/bee.example.com'
                      '/header-matches/')
         self.assertEqual(cm.exception.code, 404)
+
+    def test_header_match_post_bad_action(self):
+        header_matches = IHeaderMatchList(self._mlist)
+        with transaction():
+            header_matches.append('header', 'pattern')
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/lists/ant.example.com'
+                     '/header-matches', {
+                         'action': 'donothing',
+                        })
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason,
+                         'Cannot convert parameters: action')
+
+    def test_header_match_patch_bad_action(self):
+        header_matches = IHeaderMatchList(self._mlist)
+        with transaction():
+            header_matches.append('header', 'pattern')
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/lists/ant.example.com'
+                     '/header-matches/0', {
+                         'action': 'donothing',
+                        },
+                     method='PATCH')
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason,
+                         'Cannot convert parameters: action')
