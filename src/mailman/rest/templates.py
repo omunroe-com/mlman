@@ -17,6 +17,7 @@
 
 """Template finder."""
 
+from contextlib import ExitStack, closing
 from mailman.rest.helpers import not_found
 from mailman.utilities.i18n import TemplateNotFoundError, find
 from public import public
@@ -31,7 +32,10 @@ EXTENSIONS = {
 
 @public
 class TemplateFinder:
-    """Template finder resource."""
+    """API 3.0 Template finder resource.
+
+    This resource has been removed in API 3.1; use the /uris resource instead.
+    """
 
     def __init__(self, mlist, template, language, content_type):
         self.mlist = mlist
@@ -39,22 +43,19 @@ class TemplateFinder:
         self.language = language
         self.content_type = content_type
 
-    def on_get(self, request, response):
+    def on_get(self, request, response):            # pragma: nocover
         # XXX We currently only support .txt and .html files.
         extension = EXTENSIONS.get(self.content_type)
         if extension is None:
             not_found(response)
             return
         template = self.template + extension
-        fp = None
-        try:
+        with ExitStack() as resources:
             try:
                 path, fp = find(template, self.mlist, self.language)
             except TemplateNotFoundError:
                 not_found(response)
-                return
+                return None
             else:
+                resources.enter_context(closing(fp))
                 return fp.read()
-        finally:
-            if fp is not None:
-                fp.close()

@@ -279,8 +279,7 @@ class TopLevel:
             return NotFound(), []
         # XXX dig out content-type from context.
         content_type = None
-        return TemplateFinder(
-            fqdn_listname, template, language, content_type)
+        return TemplateFinder(mlist, template, language, content_type)
 
     @child()
     def uris(self, content, segments):
