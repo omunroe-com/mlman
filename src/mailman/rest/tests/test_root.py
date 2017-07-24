@@ -158,10 +158,28 @@ class TestRoot(unittest.TestCase):
                 }, method='PUT')
         self.assertEqual(cm.exception.code, 405)
 
+    def test_bad_preferences_path(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/system/preferences/moar/path')
+        self.assertEqual(cm.exception.code, 400)
+
+    def test_bad_versions_path(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/system/versions/moar/path')
+        self.assertEqual(cm.exception.code, 400)
+
+    def test_api31_templates(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.1/templates/whatever')
+        self.assertEqual(cm.exception.code, 404)
+
+    def test_bad_queues_path(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/queues/moar/path/to/find')
+        self.assertEqual(cm.exception.code, 400)
+
 
 class TestSiteTemplates(unittest.TestCase):
-    """Test /uris"""
-
     layer = RESTLayer
 
     def test_no_templates_for_api_30(self):

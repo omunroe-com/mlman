@@ -269,13 +269,13 @@ class TopLevel:
             return NotFound(), []
         if len(segments) == 3:
             fqdn_listname, template, language = segments
-        elif len(segments) == 2:
+        elif len(segments) == 2:                    # pragma: nocover
             fqdn_listname, template = segments
             language = 'en'
         else:
             return BadRequest(), []
         mlist = getUtility(IListManager).get(fqdn_listname)
-        if mlist is None:
+        if mlist is None:                           # pragma: nocover
             return NotFound(), []
         # XXX dig out content-type from context.
         content_type = None
