@@ -97,7 +97,7 @@ def pipeline_validator(pipeline_name):
 
 
 def password_bytes_validator(value):
-    if value is None or isinstance(value, bytes):
+    if value is None or isinstance(value, bytes):   # pragma: nobranch
         return value
     return config.password_context.encrypt(value).encode('utf-8')
 
@@ -196,7 +196,7 @@ def api_attributes(api):
     # attributes, although we map them to templates.  In API 3.1 and beyond,
     # only the template manager API can be used for these.
     attributes = ATTRIBUTES.copy()
-    if api.version_info == (3, 0):
+    if api.version_info == (3, 0):                  # pragma: nobranch
         attributes.update({
             attribute: URIAttributeMapper(str)
             for attribute in TEMPLATE_ATTRIBUTES
@@ -243,7 +243,7 @@ class ListConfiguration:
         # handled by the template manager API.
         validators = VALIDATORS.copy()
         attributes = api_attributes(self.api)
-        if self.api.version_info == (3, 0):
+        if self.api.version_info == (3, 0):         # pragma: nobranch
             validators.update({
                 attribute: URIAttributeMapper(str)
                 for attribute in TEMPLATE_ATTRIBUTES

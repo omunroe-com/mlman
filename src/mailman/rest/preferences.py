@@ -69,9 +69,7 @@ class Preferences(ReadOnlyPreferences):
     """Preferences which can be changed."""
 
     def _patch_put(self, request, response, is_optional):
-        if self._parent is None:
-            not_found(response)
-            return
+        assert self._parent is not None
         kws = dict(
             acknowledge_posts=GetterSetter(as_boolean),
             hide_address=GetterSetter(as_boolean),
