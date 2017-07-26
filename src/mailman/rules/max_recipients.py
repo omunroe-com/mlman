@@ -41,4 +41,12 @@ class MaximumRecipients:
         # Figure out how many recipients there are
         recipients = getaddresses(msg.get_all('to', []) +
                                   msg.get_all('cc', []))
-        return len(recipients) >= mlist.max_num_recipients
+        if len(recipients) >= mlist.max_num_recipients:
+            msgdata['moderation_sender'] = msg.sender
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                msgdata.setdefault('moderation_reasons', []).append(
+                    (_('Message has more than {} recipients'),
+                     mlist.max_num_recipients))
+            return True
+        return False

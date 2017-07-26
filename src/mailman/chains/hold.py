@@ -24,7 +24,7 @@ from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 from mailman.app.moderator import hold_message
 from mailman.app.replybot import can_acknowledge
-from mailman.chains.base import TerminalChainBase
+from mailman.chains.base import TerminalChainBase, format_reasons
 from mailman.config import config
 from mailman.core.i18n import _
 from mailman.email.message import UserNotification
@@ -57,8 +57,8 @@ def _compose_reasons(msgdata, column=66):
     # Rules can add reasons to the metadata.
     reasons = msgdata.get('moderation_reasons', [_('N/A')])
     return NL.join(
-        [(SPACE * 4) + wrap(_(reason), column=column)
-         for reason in reasons])
+        [(SPACE * 4) + wrap(reason, column=column)
+         for reason in format_reasons(reasons)])
 
 
 def autorespond_to_sender(mlist, sender, language=None):
@@ -142,7 +142,7 @@ class HoldChain(TerminalChainBase):
         rule_misses = msgdata.get('rule_misses')
         if rule_misses:
             msg['X-Mailman-Rule-Misses'] = SEMISPACE.join(rule_misses)
-        reasons = msgdata.get('moderation_reasons', ['n/a'])
+        reasons = format_reasons(msgdata.get('moderation_reasons', ['n/a']))
         # Hold the message by adding it to the list's request database.
         request_id = hold_message(mlist, msg, msgdata, SEMISPACE.join(reasons))
         # Calculate a confirmation token to send to the author of the
@@ -251,7 +251,8 @@ also appear in the first line of the body of the reply.""")),
         # Log the held message.  Log messages are not translated, so recast
         # the reasons in the English.
         with _.using('en'):
-            reasons = msgdata.get('moderation_reasons', ['N/A'])
+            reasons = format_reasons(
+                msgdata.get('moderation_reasons', ['N/A']))
             log.info('HOLD: %s post from %s held, message-id=%s: %s',
                      mlist.fqdn_listname, msg.sender,
                      msg.get('message-id', 'n/a'), SEMISPACE.join(reasons))

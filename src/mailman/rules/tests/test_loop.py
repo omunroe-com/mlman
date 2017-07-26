@@ -15,38 +15,38 @@
 # You should have received a copy of the GNU General Public License along with
 # GNU Mailman.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test the `no_subject` header rule."""
+"""Test the `loop` rule."""
 
 import unittest
 
 from mailman.app.lifecycle import create_list
-from mailman.email.message import Message
-from mailman.rules import no_senders
+from mailman.rules import loop
+from mailman.testing.helpers import specialized_message_from_string as mfs
 from mailman.testing.layers import ConfigLayer
 
 
-class TestNoSender(unittest.TestCase):
-    """Test the no_senders rule."""
+class TestLoop(unittest.TestCase):
+    """Test the loop rule."""
 
     layer = ConfigLayer
 
     def setUp(self):
         self._mlist = create_list('test@example.com')
-        self._rule = no_senders.NoSenders()
 
-    def test_message_has_no_sender(self):
-        msg = Message()
+    def test_loop_returns_reason(self):
+        # Ensure loop rule returns a reason.
+        msg = mfs("""\
+From: anne@example.com
+To: test@example.com
+Subject: A Subject
+List-Post: test@example.com
+Message-ID: <ant>
+
+A message body.
+""")
+        rule = loop.Loop()
         msgdata = {}
-        result = self._rule.check(self._mlist, msg, msgdata)
+        result = rule.check(self._mlist, msg, msgdata)
         self.assertTrue(result)
         self.assertEqual(msgdata['moderation_reasons'],
-                         ['The message has no valid senders'])
-        self.assertEqual(msgdata['moderation_sender'], 'N/A')
-
-    def test_message_has_sender(self):
-        msg = Message()
-        msg['From'] = 'anne@example.com'
-        msgdata = {}
-        result = self._rule.check(self._mlist, msg, msgdata)
-        self.assertFalse(result)
-        self.assertEqual(msgdata, {})
+                         ['Message has already been posted to this list'])

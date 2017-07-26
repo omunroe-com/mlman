@@ -39,4 +39,11 @@ class Emergency:
 
     def check(self, mlist, msg, msgdata):
         """See `IRule`."""
-        return mlist.emergency and not msgdata.get('moderator_approved')
+        if mlist.emergency and not msgdata.get('moderator_approved'):
+            msgdata['moderation_sender'] = msg.sender
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                msgdata.setdefault('moderation_reasons', []).append(
+                    _('Emergency moderation is in effect for this list'))
+            return True
+        return False

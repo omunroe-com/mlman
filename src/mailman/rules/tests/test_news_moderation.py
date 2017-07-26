@@ -15,38 +15,39 @@
 # You should have received a copy of the GNU General Public License along with
 # GNU Mailman.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test the `no_subject` header rule."""
+"""Test the `news_moderation` rule."""
 
 import unittest
 
 from mailman.app.lifecycle import create_list
-from mailman.email.message import Message
-from mailman.rules import no_senders
+from mailman.interfaces.nntp import NewsgroupModeration
+from mailman.rules import news_moderation
+from mailman.testing.helpers import specialized_message_from_string as mfs
 from mailman.testing.layers import ConfigLayer
 
 
-class TestNoSender(unittest.TestCase):
-    """Test the no_senders rule."""
+class TestModeratedNewsgroup(unittest.TestCase):
+    """Test the news_moderation rule."""
 
     layer = ConfigLayer
 
     def setUp(self):
         self._mlist = create_list('test@example.com')
-        self._rule = no_senders.NoSenders()
 
-    def test_message_has_no_sender(self):
-        msg = Message()
+    def test_news_moderation_returns_reason(self):
+        # Ensure news_moderation rule returns a reason.
+        msg = mfs("""\
+From: anne@example.com
+To: test@example.com
+Subject: A Subject
+Message-ID: <ant>
+
+A message body.
+""")
+        rule = news_moderation.ModeratedNewsgroup()
+        self._mlist.newsgroup_moderation = NewsgroupModeration.moderated
         msgdata = {}
-        result = self._rule.check(self._mlist, msg, msgdata)
+        result = rule.check(self._mlist, msg, msgdata)
         self.assertTrue(result)
         self.assertEqual(msgdata['moderation_reasons'],
-                         ['The message has no valid senders'])
-        self.assertEqual(msgdata['moderation_sender'], 'N/A')
-
-    def test_message_has_sender(self):
-        msg = Message()
-        msg['From'] = 'anne@example.com'
-        msgdata = {}
-        result = self._rule.check(self._mlist, msg, msgdata)
-        self.assertFalse(result)
-        self.assertEqual(msgdata, {})
+                         ['Post to a moderated newsgroup gateway'])

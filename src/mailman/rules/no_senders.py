@@ -37,9 +37,9 @@ class NoSenders:
         if msg.sender:
             return False
         else:
-            msgdata['moderation_action'] = 'discard'
-            msgdata['moderation_sender'] = _('None')
-            msgdata.setdefault('moderation_reasons', []).append(
-                # This will get translated at the point of use.
-                'The message has no valid senders')
+            msgdata['moderation_sender'] = 'N/A'
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                msgdata.setdefault('moderation_reasons', []).append(
+                    _('The message has no valid senders'))
             return True

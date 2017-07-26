@@ -46,3 +46,12 @@ class TestNoSubject(unittest.TestCase):
         msg['Subject'] = Header('Test subject')
         result = self._rule.check(self._mlist, msg, {})
         self.assertFalse(result)
+
+    def test_no_subject_returns_reason(self):
+        msg = Message()
+        msg['Subject'] = Header('')
+        msgdata = {}
+        result = self._rule.check(self._mlist, msg, msgdata)
+        self.assertTrue(result)
+        self.assertEqual(msgdata['moderation_reasons'],
+                         ['Message has no subject'])

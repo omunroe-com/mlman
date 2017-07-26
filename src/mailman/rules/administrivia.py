@@ -89,5 +89,10 @@ class Administrivia:
                 continue
             minargs, maxargs = EMAIL_COMMANDS[words[0]]
             if minargs <= len(words) - 1 <= maxargs:
+                msgdata['moderation_sender'] = msg.sender
+                with _.defer_translation():
+                    # This will be translated at the point of use.
+                    msgdata.setdefault('moderation_reasons', []).append(
+                        _('Message contains administrivia'))
                 return True
         return False

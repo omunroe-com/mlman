@@ -42,3 +42,16 @@ class TestSuspicious(unittest.TestCase):
         self._mlist.bounce_matching_headers = 'from: spam@example.com'
         result = self._rule.check(self._mlist, msg, {})
         self.assertFalse(result)
+
+    def test_suspicious_returns_reason(self):
+        msg = Message()
+        msg['From'] = Header('spam@example.com')
+        self._mlist.bounce_matching_headers = 'from: spam@example.com'
+        msgdata = {}
+        result = self._rule.check(self._mlist, msg, msgdata)
+        self.assertTrue(result)
+        self.assertEqual(
+            msgdata['moderation_reasons'],
+            [('Header "{}" matched a bounce_matching_header line',
+              'spam@example.com')]
+            )

@@ -84,9 +84,10 @@ class MemberModeration:
             # stored in the pending request table.
             msgdata['moderation_action'] = action.name
             msgdata['moderation_sender'] = sender
-            msgdata.setdefault('moderation_reasons', []).append(
-                # This will get translated at the point of use.
-                'The message comes from a moderated member')
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                msgdata.setdefault('moderation_reasons', []).append(
+                    _('The message comes from a moderated member'))
             return True
         # The sender is not a member so this rule does not match.
         return False
@@ -146,10 +147,12 @@ class NonmemberModeration:
                 for addr in checklist:
                     if ((addr.startswith('^') and re.match(addr, sender))
                             or addr == sender):     # noqa: W503
-                        # The reason will get translated at the point of use.
-                        reason = 'The sender is in the nonmember {} list'
-                        _record_action(msgdata, action, sender,
-                                       reason.format(action))
+                        with _.defer_translation():
+                            # This will be translated at the point of use.
+                            reason = (
+                                _('The sender is in the nonmember {} list'),
+                                action)
+                        _record_action(msgdata, action, sender, reason)
                         return True
             action = (mlist.default_nonmember_action
                       if nonmember.moderation_action is None
@@ -160,9 +163,9 @@ class NonmemberModeration:
             elif action is not None:
                 # We must stringify the moderation action so that it can be
                 # stored in the pending request table.
-                #
-                # The reason will get translated at the point of use.
-                reason = 'The message is not from a list member'
+                with _.defer_translation():
+                    # This will be translated at the point of use.
+                    reason = _('The message is not from a list member')
                 _record_action(msgdata, action.name, sender, reason)
                 return True
         # The sender must be a member, so this rule does not match.

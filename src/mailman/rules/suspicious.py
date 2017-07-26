@@ -41,7 +41,7 @@ class SuspiciousHeader:
     def check(self, mlist, msg, msgdata):
         """See `IRule`."""
         return (mlist.bounce_matching_headers and
-                has_matching_bounce_header(mlist, msg))
+                has_matching_bounce_header(mlist, msg, msgdata))
 
 
 def _parse_matching_header_opt(mlist):
@@ -77,7 +77,7 @@ bad regexp in bounce_matching_header line: %s
     return all
 
 
-def has_matching_bounce_header(mlist, msg):
+def has_matching_bounce_header(mlist, msg, msgdata):
     """Does the message have a matching bounce header?
 
     :param mlist: The mailing list the message is destined for.
@@ -90,5 +90,11 @@ def has_matching_bounce_header(mlist, msg):
             # Convert the header value to a str because it may be an
             # email.header.Header instance.
             if cre.search(str(value)):
+                msgdata['moderation_sender'] = msg.sender
+                with _.defer_translation():
+                    # This will be translated at the point of use.
+                    msgdata.setdefault('moderation_reasons', []).append((_(
+                        'Header "{}" matched a bounce_matching_header line'),
+                        str(value)))
                 return True
     return False

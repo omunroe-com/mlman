@@ -45,12 +45,14 @@ Subject: Ignore
         msgdata = dict(moderation_reasons=[
             'TEST-REASON-1',
             'TEST-REASON-2',
+            ('TEST-{}-REASON-{}', 'FORMAT', 3),
             ])
         process_chain(self._mlist, self._msg, msgdata, start_chain='reject')
         bounces = get_queue_messages('virgin', expected_count=1)
         payload = bounces[0].msg.get_payload(0).as_string()
         self.assertIn('TEST-REASON-1', payload)
         self.assertIn('TEST-REASON-2', payload)
+        self.assertIn('TEST-FORMAT-REASON-3', payload)
 
     def test_no_reason(self):
         # There may be no moderation reasons.

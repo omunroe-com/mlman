@@ -307,17 +307,23 @@ class DMARCMitigation:
             msgdata['dmarc'] = True
             if mlist.dmarc_mitigate_action is DMARCMitigateAction.discard:
                 msgdata['moderation_action'] = 'discard'
-                msgdata['moderation_reasons'] = [_('DMARC moderation')]
+                with _.defer_translation():
+                    # This will be translated at the point of use.
+                    msgdata.setdefault('moderation_reasons', []).append(
+                        _('DMARC moderation'))
             elif mlist.dmarc_mitigate_action is DMARCMitigateAction.reject:
                 listowner = mlist.owner_address       # noqa F841
-                reason = (mlist.dmarc_moderation_notice or
-                          _('You are not allowed to post to this mailing '
-                            'list From: a domain which publishes a DMARC '
-                            'policy of reject or quarantine, and your message'
-                            ' has been automatically rejected.  If you think '
-                            'that your messages are being rejected in error, '
-                            'contact the mailing list owner at ${listowner}.'))
-                msgdata['moderation_reasons'] = [wrap(reason)]
+                with _.defer_translation():
+                    # This will be translated at the point of use.
+                    reason = (mlist.dmarc_moderation_notice or _(
+                        'You are not allowed to post to this mailing '
+                        'list From: a domain which publishes a DMARC '
+                        'policy of reject or quarantine, and your message'
+                        ' has been automatically rejected.  If you think '
+                        'that your messages are being rejected in error, '
+                        'contact the mailing list owner at ${listowner}.'))
+                msgdata.setdefault('moderation_reasons', []).append(
+                    wrap(reason))
                 msgdata['moderation_action'] = 'reject'
             else:
                 return False

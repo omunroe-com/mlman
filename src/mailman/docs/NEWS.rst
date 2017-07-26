@@ -7,7 +7,6 @@ Copyright (C) 1998-2017 by the Free Software Foundation, Inc.
 
 Here is a history of user visible changes to Mailman.
 
-
 3.1.1
 =====
 (201X-XX-XXX)
@@ -19,8 +18,9 @@ Here is a history of user visible changes to Mailman.
   * Generated ``regexp`` tables for Postfix now account for possible ``+extra``
     additions to the ``-bounces`` and ``-confirm`` addresses.  (Closes #401)
   * A list whose name is one of the ``admin``, ``bounces``, ``confirm``, etc.
-    subaddresses can now be posted to.  (Closes #433)	
-
+    subaddresses can now be posted to.  (Closes #433)
+  * Various message holds and rejects that gave 'N/A' as a reason now give an
+    appropriate reason.  (Closes #368)
 
 3.1.0 -- "Between The Wheels"
 =============================

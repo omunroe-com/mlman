@@ -111,6 +111,7 @@ A message body.
         msgdata = dict(moderation_reasons=[
             'TEST-REASON-1',
             'TEST-REASON-2',
+            ('TEST-{}-REASON-{}', 'FORMAT', 3),
             ])
         logfile = LogFileMark('mailman.vette')
         process_chain(self._mlist, msg, msgdata, start_chain='hold')
@@ -126,18 +127,22 @@ A message body.
                 self.fail('Unexpected message: %s' % item.msg)
         self.assertIn('    TEST-REASON-1', payloads['owner'])
         self.assertIn('    TEST-REASON-2', payloads['owner'])
+        self.assertIn('    TEST-FORMAT-REASON-3', payloads['owner'])
         self.assertIn('    TEST-REASON-1', payloads['sender'])
         self.assertIn('    TEST-REASON-2', payloads['sender'])
+        self.assertIn('    TEST-FORMAT-REASON-3', payloads['sender'])
         logged = logfile.read()
         self.assertIn('TEST-REASON-1', logged)
         self.assertIn('TEST-REASON-2', logged)
+        self.assertIn('TEST-FORMAT-REASON-3', logged)
         # Check the reason passed to hold_message().
         requests = IListRequests(self._mlist)
         self.assertEqual(requests.count_of(RequestType.held_message), 1)
         request = requests.of_type(RequestType.held_message)[0]
         key, data = requests.get_request(request.id)
         self.assertEqual(
-            data.get('_mod_reason'), 'TEST-REASON-1; TEST-REASON-2')
+            data.get('_mod_reason'),
+            'TEST-REASON-1; TEST-REASON-2; TEST-FORMAT-REASON-3')
 
     def test_hold_chain_no_reasons_given(self):
         msg = mfs("""\

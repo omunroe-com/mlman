@@ -18,11 +18,30 @@
 """Base class for terminal chains."""
 
 from mailman.config import config
+from mailman.core.i18n import _
 from mailman.interfaces.chain import (
     IChain, IChainIterator, IChainLink, IMutableChain, LinkAction)
 from mailman.interfaces.rules import IRule
 from public import public
 from zope.interface import implementer
+
+
+@public
+def format_reasons(reasons):
+    """Translate and format hold and rejection reasons.
+
+    :param reasons: A list of reasons from the rules that hit.  Each reason is
+        a string to be translated or a tuple consisting of a string with {}
+        replacements and one or more replacement values.
+    :returns: A list of the translated and formatted strings.
+    """
+    new_reasons = []
+    for reason in reasons:
+        if isinstance(reason, tuple):
+            new_reasons.append(_(reason[0]).format(*reason[1:]))
+        else:
+            new_reasons.append(_(reason))
+    return new_reasons
 
 
 @public

@@ -74,6 +74,30 @@ A message body.
         result = rule.check(self._mlist, msg, {})
         self.assertTrue(result)
 
+    def test_rule_returns_reason(self):
+        # Ensure a reason is returned.
+        user_manager = getUtility(IUserManager)
+        anne = user_manager.create_user('anne@example.com')
+        set_preferred(anne)
+        IBanManager(self._mlist).ban('anne@example.com')
+        msg = mfs("""\
+From: anne@example.com
+To: test@example.com
+Subject: A test message
+Message-ID: <ant>
+MIME-Version: 1.0
+
+A message body.
+""")
+        rule = banned_address.BannedAddress()
+        msgdata = {}
+        result = rule.check(self._mlist, msg, msgdata)
+        self.assertTrue(result)
+        self.assertEqual(
+            msgdata['moderation_reasons'],
+            [('Message sender {} is banned from this list',
+              'anne@example.com')])
+
     def test_banned_address_linked_to_user(self):
         # Anne is subscribed to a mailing list as a user with her preferred
         # address.  She also has a secondary address which is banned and which

@@ -20,7 +20,7 @@
 import logging
 
 from mailman.app.bounces import bounce_message
-from mailman.chains.base import TerminalChainBase
+from mailman.chains.base import TerminalChainBase, format_reasons
 from mailman.core.i18n import _
 from mailman.interfaces.chain import RejectEvent
 from mailman.interfaces.pipeline import RejectMessage
@@ -65,7 +65,7 @@ reasons:
 The original message as received by Mailman is attached.
 """).format(
     list_name=mlist.display_name,                   # noqa: E122
-    reasons=NEWLINE.join(reasons)
+    reasons=NEWLINE.join(format_reasons(reasons))
     ))
         bounce_message(mlist, msg, error)
         log.info('REJECT: %s', msg.get('message-id', 'n/a'))

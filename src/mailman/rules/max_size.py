@@ -39,4 +39,12 @@ class MaximumSize:
         assert hasattr(msg, 'original_size'), (
             'Message was not sized on initial parsing.')
         # The maximum size is specified in 1024 bytes.
-        return msg.original_size / 1024.0 > mlist.max_message_size
+        if msg.original_size / 1024.0 > mlist.max_message_size:
+            msgdata['moderation_sender'] = msg.sender
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                msgdata.setdefault('moderation_reasons', []).append(
+                    (_('The message is larger than the {} KB maximum size'),
+                     mlist.max_message_size))
+            return True
+        return False
