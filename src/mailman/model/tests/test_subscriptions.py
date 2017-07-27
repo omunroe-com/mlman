@@ -237,8 +237,11 @@ class TestSubscriptionService(unittest.TestCase):
 
     def test_leave_no_such_list(self):
         # Trying to leave a nonexistent list raises an exception.
-        self.assertRaises(NoSuchListError, self._service.leave,
-                          'bogus.example.com', 'anne@example.com')
+        with self.assertRaises(NoSuchListError) as cm:
+            self._service.leave('bogus.example.com', 'anne@example.com')
+        self.assertEqual(
+            str(cm.exception),
+            'No such mailing list: bogus.example.com')
 
     def test_unsubscribe_members_no_such_list(self):
         # Raises an exception if an invalid list_id is passed

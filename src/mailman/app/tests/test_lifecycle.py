@@ -38,8 +38,9 @@ class TestLifecycle(unittest.TestCase):
 
     def test_posting_address_validation(self):
         # Creating a mailing list with a bogus address raises an exception.
-        self.assertRaises(InvalidEmailAddressError,
-                          create_list, 'bogus address')
+        with self.assertRaises(InvalidEmailAddressError) as cm:
+            create_list('bogus address')
+        self.assertEqual(str(cm.exception), 'bogus address')
 
     def test_listname_validation(self):
         # Creating a mailing list with invalid characters in the listname

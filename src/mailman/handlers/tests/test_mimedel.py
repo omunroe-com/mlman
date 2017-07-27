@@ -99,7 +99,7 @@ Message-ID: <ant>
         self._mlist.filter_action = FilterAction.discard
         with self.assertRaises(DiscardMessage) as cm:
             mime_delete.dispose(self._mlist, self._msg, {}, 'discarding')
-        self.assertEqual(cm.exception.message, 'discarding')
+        self.assertEqual(str(cm.exception), 'discarding')
         # There should be no messages in the 'bad' queue.
         get_queue_messages('bad', expected_count=0)
 
@@ -107,7 +107,7 @@ Message-ID: <ant>
         self._mlist.filter_action = FilterAction.reject
         with self.assertRaises(RejectMessage) as cm:
             mime_delete.dispose(self._mlist, self._msg, {}, 'rejecting')
-        self.assertEqual(cm.exception.message, 'rejecting')
+        self.assertEqual(str(cm.exception), 'rejecting')
         # There should be no messages in the 'bad' queue.
         get_queue_messages('bad', expected_count=0)
 
