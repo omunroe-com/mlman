@@ -298,15 +298,15 @@ class DMARCMitigation:
         if mlist.dmarc_mitigate_action is DMARCMitigateAction.no_mitigation:
             # Don't bother to check if we're not going to do anything.
             return False
-        dn, addr = parseaddr(msg.get('from'))
-        if maybe_mitigate(mlist, addr):
+        display_name, address = parseaddr(msg.get('from'))
+        if maybe_mitigate(mlist, address):
             # If dmarc_mitigate_action is discard or reject, this rule fires
             # and jumps to the 'moderation' chain to do the actual discard.
             # Otherwise, the rule misses but sets a flag for the dmarc handler
             # to do the appropriate action.
             msgdata['dmarc'] = True
             if mlist.dmarc_mitigate_action is DMARCMitigateAction.discard:
-                msgdata['moderation_action'] = 'discard'
+                msgdata['dmarc_action'] = 'discard'
                 with _.defer_translation():
                     # This will be translated at the point of use.
                     msgdata.setdefault('moderation_reasons', []).append(
@@ -324,9 +324,9 @@ class DMARCMitigation:
                         'contact the mailing list owner at ${listowner}.'))
                 msgdata.setdefault('moderation_reasons', []).append(
                     wrap(reason))
-                msgdata['moderation_action'] = 'reject'
+                msgdata['dmarc_action'] = 'reject'
             else:
                 return False
-            msgdata['moderation_sender'] = addr
+            msgdata['moderation_sender'] = address
             return True
         return False

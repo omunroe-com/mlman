@@ -179,6 +179,7 @@ ALL_TEMPLATES = {
         'list:user:notice:post',
         'list:user:notice:probe',
         'list:user:notice:refuse',
+        'list:user:notice:rejected',
         'list:user:notice:welcome',
         }
     }

@@ -142,9 +142,9 @@ A message body.
             msgdata = {}
             result = rule.check(self._mlist, msg, msgdata)
             self.assertTrue(result, 'NonmemberModeration rule should hit')
-            self.assertIn('moderation_action', msgdata)
+            self.assertIn('member_moderation_action', msgdata)
             self.assertEqual(
-                msgdata['moderation_action'], action_name,
+                msgdata['member_moderation_action'], action_name,
                 'Wrong action for {}: {}'.format(address, action_name))
 
     def test_nonmember_fallback_to_list_defaults(self):
@@ -166,7 +166,7 @@ A message body.
         msgdata = {}
         result = rule.check(self._mlist, msg, msgdata)
         self.assertTrue(result)
-        self.assertEqual(msgdata['moderation_action'], 'hold')
+        self.assertEqual(msgdata['member_moderation_action'], 'hold')
         # As a side-effect, Anne has been added as a nonmember with a
         # moderation action that falls back to the list's default.
         anne = self._mlist.nonmembers.get_member('anne@example.com')
@@ -177,7 +177,7 @@ A message body.
         # This time, the message should be discarded.
         result = rule.check(self._mlist, msg, msgdata)
         self.assertTrue(result)
-        self.assertEqual(msgdata.get('moderation_action'), 'discard')
+        self.assertEqual(msgdata.get('member_moderation_action'), 'discard')
 
     def test_member_fallback_to_list_defaults(self):
         # https://gitlab.com/mailman/mailman/issues/189
@@ -201,14 +201,14 @@ A message body.
         msgdata = {}
         result = rule.check(self._mlist, msg, msgdata)
         self.assertTrue(result)
-        self.assertEqual(msgdata.get('moderation_action'), 'accept')
+        self.assertEqual(msgdata.get('member_moderation_action'), 'accept')
         # Then the list's default member action is changed.
         self._mlist.default_member_action = Action.hold
         msg.replace_header('Message-ID', '<bee>')
         # This time, the message is held.
         result = rule.check(self._mlist, msg, msgdata)
         self.assertTrue(result)
-        self.assertEqual(msgdata.get('moderation_action'), 'hold')
+        self.assertEqual(msgdata.get('member_moderation_action'), 'hold')
 
     def test_linked_address_nonmembermoderation_misses(self):
         # Anne subscribes to a mailing list as a user with her preferred

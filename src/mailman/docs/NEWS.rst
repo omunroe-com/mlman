@@ -26,13 +26,17 @@ Bugs
     appropriate reason.  (Closes #368)
   * A missing html_to_plain_text_command is now properly detected and logged.
     (closes #345)
-	
+* Bounce messages are now composed for proper translations.	
 
 Configuration
 -------------
-
  * Mailman now also searches at ``/etc/mailman3/mailman.cfg`` for the
    configuration file.
+
+Interfaces
+----------
+* A new template ``list:user:notice:rejected`` has been added for customizing
+  the bounce message rejection notice.
 
 REST
 ----

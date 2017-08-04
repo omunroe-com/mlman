@@ -24,9 +24,9 @@ from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 from mailman.app.moderator import hold_message
 from mailman.app.replybot import can_acknowledge
-from mailman.chains.base import TerminalChainBase, format_reasons
+from mailman.chains.base import TerminalChainBase
 from mailman.config import config
-from mailman.core.i18n import _
+from mailman.core.i18n import _, format_reasons
 from mailman.email.message import UserNotification
 from mailman.interfaces.autorespond import IAutoResponseSet, Response
 from mailman.interfaces.chain import HoldEvent

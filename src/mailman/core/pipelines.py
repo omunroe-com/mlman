@@ -58,7 +58,7 @@ def process(mlist, msg, msgdata, pipeline_name='built-in'):
         except RejectMessage as error:
             vlog.info(
                 '{} rejected by "{}" pipeline handler "{}": {}'.format(
-                    message_id, pipeline_name, handler.name, error.message))
+                    message_id, pipeline_name, handler.name, str(error)))
             bounce_message(mlist, msg, error)
 
 

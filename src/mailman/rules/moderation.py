@@ -82,7 +82,7 @@ class MemberModeration:
         elif action is not None:
             # We must stringify the moderation action so that it can be
             # stored in the pending request table.
-            msgdata['moderation_action'] = action.name
+            msgdata['member_moderation_action'] = action.name
             msgdata['moderation_sender'] = sender
             with _.defer_translation():
                 # This will be translated at the point of use.
@@ -94,7 +94,7 @@ class MemberModeration:
 
 
 def _record_action(msgdata, action, sender, reason):
-    msgdata['moderation_action'] = action
+    msgdata['member_moderation_action'] = action
     msgdata['moderation_sender'] = sender
     msgdata.setdefault('moderation_reasons', []).append(reason)
 

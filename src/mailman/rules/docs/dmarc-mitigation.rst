@@ -102,7 +102,7 @@ message.
     True
     >>> dump_msgdata(msgdata)
     dmarc             : True
-    moderation_action : discard
+    dmarc_action      : discard
     moderation_reasons: ['DMARC moderation']
     moderation_sender : aperson@example.biz
 
@@ -121,7 +121,7 @@ We can reject the message with a default reason.
     True
     >>> dump_msgdata(msgdata)
     dmarc             : True
-    moderation_action : reject
+    dmarc_action      : reject
     moderation_reasons: ['You are not allowed to post to this mailing list...
     moderation_sender : aperson@example.biz
 
@@ -140,6 +140,6 @@ And, we can reject with a custom message.
     True
     >>> dump_msgdata(msgdata)
     dmarc             : True
-    moderation_action : reject
+    dmarc_action      : reject
     moderation_reasons: ['A silly reason']
     moderation_sender : aperson@example.biz

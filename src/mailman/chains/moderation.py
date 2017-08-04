@@ -34,17 +34,14 @@ made as to the disposition of the message.  `defer` is the default for
 members, while `hold` is the default for nonmembers.
 """
 
-from mailman.chains.base import Link
+from mailman.chains.base import JumpChainBase
 from mailman.core.i18n import _
 from mailman.interfaces.action import Action
-from mailman.interfaces.chain import IChain, LinkAction
 from public import public
-from zope.interface import implementer
 
 
 @public
-@implementer(IChain)
-class ModerationChain:
+class ModerationChain(JumpChainBase):
     """Dynamically produce a link jumping to the appropriate terminal chain.
 
     The terminal chain will be one of the Accept, Hold, Discard, or Reject
@@ -53,13 +50,12 @@ class ModerationChain:
     name = 'moderation'
     description = _('Moderation chain')
 
-    def get_links(self, mlist, msg, msgdata):
-        """See `IChain`."""
+    def jump_to(self, mlist, msg, msgdata):
         # Get the moderation action from the message metadata.  It can only be
         # one of the expected values (i.e. not Action.defer).  See the
         # moderation.py rule for details.  This is stored in the metadata as a
         # string so that it can be stored in the pending table.
-        action = Action[msgdata.get('moderation_action')]
+        action = Action[msgdata.get('member_moderation_action')]
         # defer is not a valid moderation action.
         jump_chain = {
             Action.accept: 'accept',
@@ -68,9 +64,7 @@ class ModerationChain:
             Action.reject: 'reject',
             }.get(action)
         assert jump_chain is not None, (
-            '{0}: Invalid moderation action: {1} for sender: {2}'.format(
-                mlist.fqdn_listname, action,
+            '{}: Invalid moderation action: {} for sender: {}'.format(
+                mlist.list_id, action,
                 msgdata.get('moderation_sender', '(unknown)')))
-        return iter([
-            Link('truth', LinkAction.jump, jump_chain),
-            ])
+        return jump_chain

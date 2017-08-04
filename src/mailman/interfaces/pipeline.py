@@ -17,13 +17,12 @@
 
 """Interface for describing pipelines."""
 
+from mailman.core.i18n import _, format_reasons
 from public import public
 from zope.interface import Attribute, Interface
 
 
-# For i18n extraction.
-def _(s):
-    return s
+NL = '\n'
 
 
 # These are thrown but they aren't exceptions so don't inherit from
@@ -44,11 +43,20 @@ class DiscardMessage(BaseException):
 class RejectMessage(BaseException):
     """The message will be bounced back to the sender"""
 
-    def __init__(self, message=None):
+    def __init__(self, message=None, reasons=None, substitutions=None):
         self.message = message
+        self.reasons = reasons
+        self.substitutions = ({} if substitutions is None else substitutions)
 
     def __str__(self):
-        return self.message
+        if self.message is None:
+            return _('[No details are available]')
+        reasons = (_('[No reasons given]')
+                   if self.reasons is None
+                   else NL.join(format_reasons(self.reasons)))
+        substitutions = self.substitutions.copy()
+        substitutions['reasons'] = reasons
+        return _(self.message, substitutions)
 
 
 @public
