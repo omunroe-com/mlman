@@ -60,6 +60,7 @@ Table of Contents
     src/mailman/docs/mta
     src/mailman/docs/postorius
     src/mailman/docs/hyperkitty
+    src/mailman/plugins/docs/intro
     src/mailman/docs/contribute
     src/mailman/docs/STYLEGUIDE
     src/mailman/docs/internationalization

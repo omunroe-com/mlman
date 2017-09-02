@@ -29,6 +29,7 @@ from mailman.interfaces.usermanager import IUserManager
 from mailman.testing.helpers import configuration
 from mailman.testing.layers import ConfigLayer
 from mailman.utilities.modules import hacked_sys_modules
+from types import ModuleType
 from unittest.mock import MagicMock, patch
 
 try:
@@ -40,6 +41,7 @@ except ImportError:
 
 class TestShell(unittest.TestCase):
     layer = ConfigLayer
+    maxDiff = None
 
     def setUp(self):
         self._command = CliRunner()
@@ -156,12 +158,12 @@ class TestShell(unittest.TestCase):
             'Error: No such list: ant.example.com\n')
 
     def test_run_without_listspec(self):
-        results = self._command.invoke(shell, ('--run', 'something'))
-        self.assertEqual(results.exit_code, 2)
-        self.assertEqual(
-            results.output,
-            'Usage: shell [OPTIONS] [RUN_ARGS]...\n\n'
-            'Error: --run requires a mailing list\n')
+        something = ModuleType('something')
+        something.something = lambda: print('I am a something!')
+        with hacked_sys_modules('something', something):
+            results = self._command.invoke(shell, ('--run', 'something'))
+        self.assertEqual(results.exit_code, 0)
+        self.assertEqual(results.output, 'I am a something!\n')
 
     def test_run_bogus_listspec(self):
         results = self._command.invoke(

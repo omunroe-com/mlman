@@ -60,7 +60,7 @@ always get the same object back.
     >>> list_manager.get('ant@example.com')
     <mailing list "ant@example.com" at ...>
 
-The ``.get()`` method is ambidextrous, so it also accepts ``List-ID``s.
+The ``.get()`` method is ambidextrous, so it also accepts ``List-ID``'s.
 
     >>> list_manager.get('ant.example.com')
     <mailing list "ant@example.com" at ...>

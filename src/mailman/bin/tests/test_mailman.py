@@ -25,8 +25,11 @@ from mailman.app.lifecycle import create_list
 from mailman.bin.mailman import main
 from mailman.config import config
 from mailman.database.transaction import transaction
+from mailman.interfaces.command import ICLISubCommand
 from mailman.testing.layers import ConfigLayer
 from mailman.utilities.datetime import now
+from mailman.utilities.modules import add_components
+from pkg_resources import resource_filename
 from unittest.mock import patch
 
 
@@ -36,7 +39,19 @@ class TestMailmanCommand(unittest.TestCase):
     def setUp(self):
         self._command = CliRunner()
 
-    def test_mailman_command_without_subcommand_prints_help(self):
+    def test_mailman_command_config(self):
+        config_path = resource_filename('mailman.testing', 'testing.cfg')
+        with patch('mailman.bin.mailman.initialize') as init:
+            self._command.invoke(main, ('-C', config_path, 'info'))
+        init.assert_called_once_with(config_path)
+
+    def test_mailman_command_no_config(self):
+        with patch('mailman.bin.mailman.initialize') as init:
+            self._command.invoke(main, ('info',))
+        init.assert_called_once_with(None)
+
+    @patch('mailman.bin.mailman.initialize')
+    def test_mailman_command_without_subcommand_prints_help(self, mock):
         # Issue #137: Running `mailman` without a subcommand raises an
         # AttributeError.
         result = self._command.invoke(main)
@@ -45,8 +60,17 @@ class TestMailmanCommand(unittest.TestCase):
         # works.  It does actually show the correct program when run from the
         # command line.
         self.assertEqual(lines[0], 'Usage: main [OPTIONS] COMMAND [ARGS]...')
+        # The help output includes a list of subcommands, in sorted order.
+        commands = {}
+        add_components('commands', ICLISubCommand, commands)
+        help_commands = list(
+            line.split()[0].strip()
+            for line in lines[-len(commands):]
+            )
+        self.assertEqual(sorted(commands), help_commands)
 
-    def test_mailman_command_with_bad_subcommand_prints_help(self):
+    @patch('mailman.bin.mailman.initialize')
+    def test_mailman_command_with_bad_subcommand_prints_help(self, mock):
         # Issue #137: Running `mailman` without a subcommand raises an
         # AttributeError.
         result = self._command.invoke(main, ('not-a-subcommand',))

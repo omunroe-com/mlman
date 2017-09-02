@@ -144,6 +144,25 @@ Something else.
                      dict(action='discard'))
         self.assertEqual(cm.exception.code, 404)
 
+    def test_subject_encoding_error(self):
+        # GL#383: messages with badly encoded Subject headers crash the REST
+        # server.
+        self._msg = mfs("""\
+From: anne@example.com
+To: ant@example.com
+Subject: =?GB2312?B?saa9o7fmtNPEpbVaQ2h1o6zDt7uoz+PX1L/guq7AtKGj?=
+Message-ID: <alpha>
+
+Something else.
+""")
+        with transaction():
+            held_id = hold_message(self._mlist, self._msg)
+        json, response = call_api(
+            'http://localhost:9001/3.0/lists/ant@example.com/held')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json['total_size'], 1)
+        self.assertEqual(json['entries'][0]['request_id'], held_id)
+
 
 class TestSubscriptionModeration(unittest.TestCase):
     layer = RESTLayer

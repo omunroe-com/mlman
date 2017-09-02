@@ -21,6 +21,9 @@ Note that doctest extraction does not currently work for zip file
 distributions.  doctest discovery currently requires file system traversal.
 """
 
+import os
+import sys
+
 from click.testing import CliRunner
 from contextlib import ExitStack
 from importlib import import_module
@@ -30,6 +33,7 @@ from mailman.testing.helpers import (
     call_api, get_queue_messages, specialized_message_from_string, subscribe)
 from mailman.testing.layers import SMTPLayer
 from public import public
+from subprocess import PIPE, STDOUT, run
 
 
 DOT = '.'
@@ -109,6 +113,13 @@ def call_http(url, data=None, method=None, username=None, password=None):
     return content
 
 
+def _print_dict(data, depth=0):
+    for item, value in sorted(data.items()):
+        if isinstance(value, dict):
+            _print_dict(value, depth+1)
+        print('    ' * depth + '{}: {}'.format(item, value))
+
+
 def dump_json(url, data=None, method=None, username=None, password=None):
     """Print the JSON dictionary read from a URL.
 
@@ -140,6 +151,9 @@ def dump_json(url, data=None, method=None, username=None, password=None):
             printable_value = COMMASPACE.join(
                 "'{}'".format(s) for s in sorted(value))
             print('{}: [{}]'.format(key, printable_value))
+        elif isinstance(value, dict):
+            print('{}:'.format(key))
+            _print_dict(value, 1)
         else:
             print('{}: {}'.format(key, value))
 
@@ -169,6 +183,18 @@ def cli(command_path):
 
 
 @public
+def run_mailman(args, **overrides):
+    exe = os.path.join(os.path.dirname(sys.executable), 'mailman')
+    env = os.environ.copy()
+    env.update(overrides)
+    run_args = [exe]
+    run_args.extend(args)
+    proc = run(
+        run_args, env=env, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    return proc
+
+
+@public
 def setup(testobj):
     """Test setup."""
     # In general, I don't like adding convenience functions, since I think
@@ -176,18 +202,19 @@ def setup(testobj):
     # documentation that way.  However, a few are really useful, or help to
     # hide some icky test implementation details.
     testobj.globs['call_http'] = call_http
+    testobj.globs['cli'] = cli
     testobj.globs['config'] = config
     testobj.globs['create_list'] = create_list
     testobj.globs['dump_json'] = dump_json
-    testobj.globs['dump_msgdata'] = dump_msgdata
     testobj.globs['dump_list'] = dump_list
+    testobj.globs['dump_msgdata'] = dump_msgdata
     testobj.globs['get_queue_messages'] = get_queue_messages
     testobj.globs['message_from_string'] = specialized_message_from_string
+    testobj.globs['run'] = run_mailman
     testobj.globs['smtpd'] = SMTPLayer.smtpd
     testobj.globs['stop'] = stop
     testobj.globs['subscribe'] = subscribe
     testobj.globs['transaction'] = config.db
-    testobj.globs['cli'] = cli
     # Add this so that cleanups can be automatically added by the doctest.
     testobj.globs['cleanups'] = ExitStack()
 

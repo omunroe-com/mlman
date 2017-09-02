@@ -45,6 +45,7 @@ key, along with the names of the corresponding sections.
     [logging.http] path: mailman.log
     [logging.locks] path: mailman.log
     [logging.mischief] path: mailman.log
+    [logging.plugins] path: plugins.log
     [logging.root] path: mailman.log
     [logging.runner] path: mailman.log
     [logging.smtp] path: smtp.log

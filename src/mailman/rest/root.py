@@ -30,6 +30,7 @@ from mailman.rest.helpers import (
     BadRequest, NotFound, child, etag, no_content, not_found, okay)
 from mailman.rest.lists import AList, AllLists, Styles
 from mailman.rest.members import AMember, AllMembers, FindMembers
+from mailman.rest.plugins import APlugin, AllPlugins
 from mailman.rest.preferences import ReadOnlyPreferences
 from mailman.rest.queues import AQueue, AQueueFile, AllQueues
 from mailman.rest.templates import TemplateFinder
@@ -305,6 +306,20 @@ class TopLevel:
             return AQueueFile(segments[0], segments[1]), []
         else:
             return BadRequest(), []
+
+    @child()
+    def plugins(self, context, segments):
+        """/<api>/plugins
+           /<api>/plugins/<plugin_name>
+           /<api>/plugins/<plugin_name>/...
+        """
+        if self.api.version_info < (3, 1):
+            return NotFound(), []
+        if len(segments) == 0:
+            return AllPlugins(), []
+        else:
+            plugin_name = segments.pop(0)
+            return APlugin(plugin_name), segments
 
     @child()
     def bans(self, context, segments):

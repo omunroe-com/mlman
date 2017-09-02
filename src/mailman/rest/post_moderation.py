@@ -95,7 +95,7 @@ class _HeldMessageBase(_ModerationBase):
         # Store the original header and then try decoding it.
         resource['original_subject'] = resource['subject']
         # If we can't decode the header, leave the subject unchanged.
-        with suppress(LookupError, MessageError):
+        with suppress(LookupError, MessageError, UnicodeDecodeError):
             resource['subject'] = str(
                 make_header(decode_header(resource['subject'])))
         # Also, held message resources will always be this type, so ignore

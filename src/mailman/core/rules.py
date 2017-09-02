@@ -27,4 +27,4 @@ from public import public
 def initialize():
     """Find and register all rules in all plugins."""
     # Find rules in plugins.
-    add_components('mailman.rules', IRule, config.rules)
+    add_components('rules', IRule, config.rules)

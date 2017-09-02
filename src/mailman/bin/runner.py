@@ -151,14 +151,12 @@ def main(ctx, config_file, verbose, list_runners, once, runner_spec):
     run this way, the environment variable $MAILMAN_UNDER_MASTER_CONTROL
     will be set which subtly changes some error handling behavior.
     """
-
     global log
 
     if runner_spec is None and not list_runners:
         ctx.fail(_('No runner name given.'))
 
     # Initialize the system.  Honor the -C flag if given.
-
     initialize(config_file, verbose)
     log = logging.getLogger('mailman.runner')
     if verbose:
@@ -186,7 +184,7 @@ def main(ctx, config_file, verbose, list_runners, once, runner_spec):
     runner = make_runner(*runner_spec, once=once)
     runner.set_signals()
     # Now start up the main loop
-    log.info('%s runner started.'.format(runner.name))
+    log.info('{} runner started.'.format(runner.name))
     runner.run()
-    log.info('%s runner exiting.'.format(runner.name))
+    log.info('{} runner exiting.'.format(runner.name))
     sys.exit(runner.status)

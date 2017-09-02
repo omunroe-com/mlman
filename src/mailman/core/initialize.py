@@ -26,11 +26,11 @@ by the command line arguments.
 
 import os
 import sys
+import logging
 import mailman.config.config
 import mailman.core.logging
 
 from mailman.interfaces.database import IDatabaseFactory
-from mailman.utilities.modules import call_name
 from pkg_resources import resource_string as resource_bytes
 from public import public
 from zope.component import getUtility
@@ -133,7 +133,7 @@ def initialize_2(debug=False, propagate_logs=None, testing=False):
 
     * Database
     * Logging
-    * Pre-hook
+    * Plugin pre_hook()'s
     * Rules
     * Chains
     * Pipelines
@@ -146,10 +146,28 @@ def initialize_2(debug=False, propagate_logs=None, testing=False):
     """
     # Create the queue and log directories if they don't already exist.
     mailman.core.logging.initialize(propagate_logs)
-    # Run the pre-hook if there is one.
+    # Initialize plugins
+    from mailman.plugins.initialize import initialize as initialize_plugins
+    initialize_plugins()
+    # Check for deprecated features in config.
     config = mailman.config.config
-    if config.mailman.pre_hook:
-        call_name(config.mailman.pre_hook)
+    if len(config.mailman.pre_hook) > 0:            # pragma: nocover
+        log = logging.getLogger('mailman.plugins')
+        log.warn(
+            'The [mailman]pre_hook configuration value has been replaced '
+            "by the plugins infrastructure, and won't be called.")
+    # Run the plugin pre_hooks, if one fails, disable the offending plugin.
+    for name in config.plugins:                     # pragma: nocover
+        plugin = config.plugins[name]
+        if hasattr(plugin, 'pre_hook'):
+            try:
+                plugin.pre_hook()
+            except Exception:                                # pragma: nocover
+                log = logging.getLogger('mailman.plugins')
+                log.exception('Plugin failed to run its pre_hook: {}'
+                              'It will be disabled and its components '
+                              "won't be loaded.".format(name))
+                del config.plugins[name]
     # Instantiate the database class, ensure that it's of the right type, and
     # initialize it.  Then stash the object on our configuration object.
     utility_name = ('testing' if testing else 'production')
@@ -171,12 +189,24 @@ def initialize_2(debug=False, propagate_logs=None, testing=False):
 def initialize_3():
     """Third initialization step.
 
-    * Post-hook
+    * Plugin post_hook()'s.
     """
-    # Run the post-hook if there is one.
+    # Run the plugin post_hooks.
     config = mailman.config.config
-    if config.mailman.post_hook:
-        call_name(config.mailman.post_hook)
+    log = logging.getLogger('mailman.plugins')
+    if len(config.mailman.post_hook) > 0:           # pragma: nocover
+        log.warn(
+            'The [mailman]post_hook configuration value has been replaced '
+            "by the plugins infrastructure, and won't be called.")
+    for plugin in config.plugins.values():          # pragma: nocover
+        try:
+            plugin.post_hook()
+        except Exception:                         # pragma: nocover
+            # A post_hook may fail, here we just hope for the best that the
+            # plugin can work even if it post_hook failed as it's components
+            # are already loaded.
+            log.exception(
+                'Plugin failed to run its post_hook: {}'.format(plugin.name))
 
 
 @public

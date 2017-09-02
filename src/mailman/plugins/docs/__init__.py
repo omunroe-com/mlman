@@ -1,4 +1,4 @@
-# Copyright (C) 2008-2017 by the Free Software Foundation, Inc.
+# Copyright (C) 2017 by the Free Software Foundation, Inc.
 #
 # This file is part of GNU Mailman.
 #
@@ -15,15 +15,11 @@
 # You should have received a copy of the GNU General Public License along with
 # GNU Mailman.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Initialize the email commands."""
+"""REST layer for plugins."""
 
-from mailman.config import config
-from mailman.interfaces.command import IEmailCommand
-from mailman.utilities.modules import add_components
+
+from mailman.plugins.testing.layer import PluginRESTLayer
 from public import public
 
-
-@public
-def initialize():
-    """Initialize the email commands."""
-    add_components('commands', IEmailCommand, config.commands)
+# For flufl.testing.
+public(layer=PluginRESTLayer)

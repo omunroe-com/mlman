@@ -63,6 +63,6 @@ def process(mlist, msg, msgdata, pipeline_name='built-in'):
 def initialize():
     """Initialize the pipelines."""
     # Find all handlers in the registered plugins.
-    add_components('mailman.handlers', IHandler, config.handlers)
+    add_components('handlers', IHandler, config.handlers)
     # Set up some pipelines.
-    add_components('mailman.pipelines', IPipeline, config.pipelines)
+    add_components('pipelines', IPipeline, config.pipelines)

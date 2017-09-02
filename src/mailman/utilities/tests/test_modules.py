@@ -22,10 +22,14 @@ import sys
 import unittest
 
 from contextlib import ExitStack, contextmanager
+from mailman.interfaces.rules import IRule
 from mailman.interfaces.styles import IStyle
+from mailman.testing.helpers import configuration
+from mailman.testing.layers import ConfigLayer
 from mailman.utilities.modules import (
-    add_components, find_components, hacked_sys_modules)
+    find_components, find_pluggable_components, hacked_sys_modules)
 from pathlib import Path
+from pkg_resources import resource_filename
 from tempfile import TemporaryDirectory
 
 
@@ -48,6 +52,8 @@ def clean_mypackage():
 
 
 class TestModuleImports(unittest.TestCase):
+    layer = ConfigLayer
+
     def test_find_modules_with_dotfiles(self):
         # Emacs creates lock files when a single file is opened by more than
         # one user. These files look like .#<filename>.py because of which
@@ -99,8 +105,8 @@ class BadStyle:
                      in find_components('mypackage', IStyle)]
             self.assertEqual(names, ['good-style'])
 
-    def test_find_components_no_instantiate(self):
-        # find_components() now instantiates the class unless it's been
+    def test_find_components_abstract_component(self):
+        # find_components() finds the class unless it's been
         # decorated with the @abstract_component decorator.
         with ExitStack() as resources:
             # Creating a temporary directory and adding it to sys.path.
@@ -141,95 +147,6 @@ class AbstractStyle:
                      in find_components('mypackage', IStyle)]
             self.assertEqual(names, ['concrete-style'])
 
-    def test_add_components(self):
-        with ExitStack() as resources:
-            # Creating a temporary directory and adding it to sys.path.
-            temp_package = resources.enter_context(TemporaryDirectory())
-            resources.enter_context(hack_syspath(0, temp_package))
-            resources.callback(clean_mypackage)
-            # Create a module inside the above package along with an
-            # __init__.py file so that we can import from it.
-            module_path = os.path.join(temp_package, 'mypackage')
-            os.mkdir(module_path)
-            init_file = os.path.join(module_path, '__init__.py')
-            Path(init_file).touch()
-            component_file = os.path.join(module_path, 'components.py')
-            with open(component_file, 'w', encoding='utf-8') as fp:
-                print("""\
-from mailman.interfaces.styles import IStyle
-from mailman.utilities.modules import abstract_component
-from public import public
-from zope.interface import implementer
-
-@public
-@implementer(IStyle)
-class StyleA:
-    name = 'styleA'
-    def apply(self):
-        pass
-
-@public
-@implementer(IStyle)
-@abstract_component
-class StyleB:
-    name = 'styleB'
-    def apply(self):
-        pass
-
-@public
-@implementer(IStyle)
-class StyleC:
-    name = 'styleC'
-    def apply(self):
-        pass
-""", file=fp)
-            styles = {}
-            add_components('mypackage', IStyle, styles)
-            self.assertEqual(set(styles), {'styleA', 'styleC'})
-
-    def test_add_components_duplicates(self):
-        # A duplicate name exists, so a RuntimeError is raised.
-        with ExitStack() as resources:
-            # Creating a temporary directory and adding it to sys.path.
-            temp_package = resources.enter_context(TemporaryDirectory())
-            resources.enter_context(hack_syspath(0, temp_package))
-            resources.callback(clean_mypackage)
-            # Create a module inside the above package along with an
-            # __init__.py file so that we can import from it.
-            module_path = os.path.join(temp_package, 'mypackage')
-            os.mkdir(module_path)
-            init_file = os.path.join(module_path, '__init__.py')
-            Path(init_file).touch()
-            component_file = os.path.join(module_path, 'components.py')
-            with open(component_file, 'w', encoding='utf-8') as fp:
-                print("""\
-from mailman.interfaces.styles import IStyle
-from mailman.utilities.modules import abstract_component
-from public import public
-from zope.interface import implementer
-
-@public
-@implementer(IStyle)
-class StyleA1:
-    name = 'styleA'
-    def apply(self):
-        pass
-
-@public
-@implementer(IStyle)
-class StyleA2:
-    name = 'styleA'
-    def apply(self):
-        pass
-""", file=fp)
-            with self.assertRaisesRegex(
-                    RuntimeError,
-                    'Duplicate key "styleA" found in '
-                    '<mypackage.components.StyleA2 object at .*>; '
-                    'previously <mypackage.components.StyleA1 object at '
-                    '.*>'):
-                add_components('mypackage', IStyle, {})
-
     def test_hacked_sys_modules(self):
         self.assertIsNone(sys.modules.get('mailman.not_a_module'))
         with hacked_sys_modules('mailman.not_a_module', object()):
@@ -241,3 +158,27 @@ class StyleA2:
         with hacked_sys_modules('email', sentinel):
             self.assertEqual(sys.modules.get('email'), sentinel)
         self.assertEqual(sys.modules.get('email'), email_package)
+
+    def test_find_pluggable_components_by_plugin_name(self):
+        path = resource_filename('mailman.plugins.testing', '')
+        with ExitStack() as resources:
+            resources.enter_context(hack_syspath(0, path))
+            resources.enter_context(configuration('plugin.example', **{
+                'class': 'example.hooks.ExamplePlugin',
+                'enabled': 'yes',
+                }))
+            components = list(find_pluggable_components('rules', IRule))
+        self.assertIn('example-rule', {rule.name for rule in components})
+
+    def test_find_pluggable_components_by_component_package(self):
+        path = resource_filename('mailman.plugins.testing', '')
+        with ExitStack() as resources:
+            resources.enter_context(hack_syspath(0, path))
+            resources.enter_context(configuration('plugin.example', **{
+                'class': 'example.hooks.ExamplePlugin',
+                'enabled': 'yes',
+                'component_package': 'alternate',
+                }))
+            components = list(find_pluggable_components('rules', IRule))
+        self.assertNotIn('example-rule', {rule.name for rule in components})
+        self.assertIn('alternate-rule', {rule.name for rule in components})

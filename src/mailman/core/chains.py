@@ -89,5 +89,4 @@ def process(mlist, msg, msgdata, start_chain='default-posting-chain'):
 @public
 def initialize():
     """Set up chains, both built-in and from the database."""
-    add_components('mailman.chains', IChain, config.chains)
-    # XXX Read chains from the database and initialize them.
+    add_components('chains', IChain, config.chains)

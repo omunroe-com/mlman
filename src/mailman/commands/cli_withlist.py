@@ -178,9 +178,12 @@ def listaddr(mlist):
 def requestaddr(mlist):
     print(mlist.request_address)
 
-All run methods take at least one argument, the mailing list object to operate
+Run methods take at least one argument, the mailing list object to operate
 on.  Any additional arguments given on the command line are passed as
-positional arguments to the callable."""))
+positional arguments to the callable.
+
+If -l is not given then you can run a function that takes no arguments.
+"""))
     print()
     print(_("""\
 You can print the list's posting address by running the following from the
@@ -232,11 +235,16 @@ Mailman will do this for you (assuming no errors occured)."""))
 @click.option(
     '--run', '-r',
     help=_("""\
-    Run a script on a mailing list.  The argument is the module path to a
-    callable.  This callable will be imported and then called with the mailing
-    list as the first argument.  If additional arguments are given at the end
-    of the command line, they are passed as subsequent positional arguments to
-    the callable.  For additional help, see --details.
+
+    Run a script.  The argument is the module path to a callable.  This
+    callable will be imported and then, if --listspec/-l is also given, is
+    called with the mailing list as the first argument.  If additional
+    arguments are given at the end of the command line, they are passed as
+    subsequent positional arguments to the callable.  For additional help, see
+    --details.
+
+    If no --listspec/-l argument is given, the script function being called is
+    called with no arguments.
     """))
 @click.option(
     '--details',
@@ -270,9 +278,8 @@ def shell(ctx, interactive, run, listspec, run_args):
         # without the dot is allowed.
         dotted_name = (run if '.' in run else '{0}.{0}'.format(run))
         if listspec is None:
-            ctx.fail(_('--run requires a mailing list'))
-        # Parse the run arguments so we can pass them into the run method.
-        if listspec.startswith('^'):
+            r = call_name(dotted_name, *run_args)
+        elif listspec.startswith('^'):
             r = {}
             cre = re.compile(listspec, re.IGNORECASE)
             for mlist in list_manager.mailing_lists:

@@ -45,22 +45,23 @@ SUBPROC_START_WAIT = timedelta(seconds=20)
 # Environment variables to forward into subprocesses.
 PRESERVE_ENVS = (
     'COVERAGE_PROCESS_START',
-    'MAILMAN_EXTRA_TESTING_CFG',
     'LANG',
     'LANGUAGE',
-    'LC_CTYPE',
-    'LC_NUMERIC',
-    'LC_TIME',
-    'LC_COLLATE',
-    'LC_MONETARY',
-    'LC_MESSAGES',
-    'LC_PAPER',
-    'LC_NAME',
     'LC_ADDRESS',
-    'LC_TELEPHONE',
-    'LC_MEASUREMENT',
-    'LC_IDENTIFICATION',
     'LC_ALL',
+    'LC_COLLATE',
+    'LC_CTYPE',
+    'LC_IDENTIFICATION',
+    'LC_MEASUREMENT',
+    'LC_MESSAGES',
+    'LC_MONETARY',
+    'LC_NAME',
+    'LC_NUMERIC',
+    'LC_PAPER',
+    'LC_TELEPHONE',
+    'LC_TIME',
+    'MAILMAN_EXTRA_TESTING_CFG',
+    'PYTHONPATH',
     )
 
 
@@ -188,6 +189,9 @@ class PIDWatcher:
     def __init__(self):
         self._pids = {}
 
+    def __contains__(self, pid):
+        return pid in self._pids.keys()
+
     def __iter__(self):
         # Safely iterate over all the keys in the dictionary.  Because
         # asynchronous signals are involved, the dictionary's size could
@@ -312,16 +316,16 @@ class Loop:
         env = {'MAILMAN_UNDER_MASTER_CONTROL': '1'}
         # Craft the command line arguments for the exec() call.
         rswitch = '--runner=' + spec
-        # Wherever master lives, so too must live the runner script.
-        exe = os.path.join(config.BIN_DIR, 'runner')
-        # config.PYTHON, which is the absolute path to the Python interpreter,
-        # must be given as argv[0] due to Python's library search algorithm.
-        args = [sys.executable, sys.executable, exe, rswitch]
         # Always pass the explicit path to the configuration file to the
         # sub-runners.  This avoids any debate about which cfg file is used.
         config_file = (config.filename if self._config_file is None
                        else self._config_file)
-        args.extend(['-C', config_file])
+        # Wherever master lives, so too must live the runner script.
+        exe = os.path.join(config.BIN_DIR, 'runner')   # pragma: nocover
+        # config.PYTHON, which is the absolute path to the Python interpreter,
+        # must be given as argv[0] due to Python's library search algorithm.
+        args = [sys.executable, sys.executable, exe,   # pragma: nocover
+                '-C', config_file, rswitch]
         log = logging.getLogger('mailman.runner')
         log.debug('starting: %s', args)
         # We must pass this environment variable through if it's set,
@@ -399,8 +403,12 @@ class Loop:
             except ChildProcessError:
                 # No children?  We're done.
                 break
-            except InterruptedError:                # pragma: nocover
+            except InterruptedError:                         # pragma: nocover
                 # If the system call got interrupted, just restart it.
+                continue
+            if pid not in self._kids:                        # pragma: nocover
+                # This is not a runner subprocess that we own.  E.g. maybe a
+                # plugin started it.
                 continue
             # Find out why the subprocess exited by getting the signal
             # received or exit status.

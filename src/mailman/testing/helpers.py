@@ -151,7 +151,9 @@ class TestableMaster(Master):
             until the pass condition is set.
         :type start_check: Callable taking no arguments, returning nothing.
         """
-        super().__init__(restartable=False, config_file=config.filename)
+        super().__init__(
+            restartable=False,
+            config_file=os.environ.get('MAILMAN_CONFIG_FILE', config.filename))
         self.start_check = start_check
         self.event = threading.Event()
         self.thread = threading.Thread(target=self.loop)

@@ -24,6 +24,8 @@ Bugs
 * Various message holds and rejects that gave 'N/A' as a reason now give an
   appropriate reason.  (Closes #368)
 * Bounce messages are now composed for proper translations.
+* Messages with badly encoded ``Subject`` headers no longer crash the message
+  moderation REST API.  (Closes #383)
 
 Command line
 ------------
@@ -32,7 +34,19 @@ Command line
   "fqdn list name" (i.e. the posting address of a mailing list), now also
   accept a ``List-ID``.  Every attempt has been made to keep the CLI backward
   compatible, but there may be subtle differences.  (Closes #346)
+* If no listname is given, running ``mailman withlist -r`` must name a
+  function taking no arguments.  This can be used to introspect Mailman
+  outside of the context of a mailing list.
 * Fix ``mailman withlist`` command parsing.  (Closes #319)
+
+Configuration
+-------------
+* The ``[mailman]pre_hook`` and ``[mailman]post_hook`` variables are
+  deprecated.  They can still be specified but they will not be run.
+* The ``[paths.*]ext_dir`` variable has been removed.
+* A new logger has been added called ``logging.plugins``.
+* The ``[styles]paths`` variable has been removed; you can now specify
+  additional styles using the new plugin architecture.
 
 Interfaces
 ----------
@@ -45,6 +59,9 @@ Interfaces
 
 Other
 -----
+* Add a new plugin architecture, which allows third parties to add
+  initialization hooks, REST endpoints, and additional components.  Given by
+  Jan Jancar.
 * Drop support for Python 3.4.  (Closes #373)
 * Bump minimum requirements for aiosmtpd (>= 1.1) and flufl.lock (>= 3.1).
 

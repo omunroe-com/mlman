@@ -16,7 +16,6 @@
 # GNU Mailman.  If not, see <http://www.gnu.org/licenses/>.
 
 """The 'mailman' command dispatcher."""
-
 import click
 
 from contextlib import ExitStack
@@ -35,17 +34,21 @@ class Subcommands(click.MultiCommand):
     def __init__(self, *args, **kws):
         super().__init__(*args, **kws)
         self._commands = {}
-        # Look at all modules in the mailman.bin package and if they are
-        # prepared to add a subcommand, let them do so.  I'm still undecided as
-        # to whether this should be pluggable or not.  If so, then we'll
-        # probably have to partially parse the arguments now, then initialize
-        # the system, then find the plugins.  Punt on this for now.
-        add_components('mailman.commands', ICLISubCommand, self._commands)
+        self._loaded = False
 
-    def list_commands(self, ctx):
-        return sorted(self._commands)               # pragma: nocover
+    def _load(self):
+        # Load commands lazily as commands in plugins can only be found after
+        # the configuration file is loaded.
+        if not self._loaded:
+            add_components('commands', ICLISubCommand, self._commands)
+            self._loaded = True
+
+    def list_commands(self, ctx):                    # pragma: nocover
+        self._load()
+        return sorted(self._commands)
 
     def get_command(self, ctx, name):
+        self._load()
         try:
             return self._commands[name].command
         except KeyError as error:
@@ -81,12 +84,15 @@ class Subcommands(click.MultiCommand):
         if opts:
             with formatter.section('Options'):
                 formatter.write_dl(opts)
+        # Print the list of available commands.
+        super().format_commands(ctx, formatter)
 
 
-@click.group(
-    cls=Subcommands,
-    context_settings=dict(help_option_names=['-h', '--help']))
-@click.pass_context
+def initialize_config(ctx, param, value):
+    if not ctx.resilient_parsing:
+        initialize(value)
+
+
 @click.option(
     '-C', '--config', 'config_file',
     envvar='MAILMAN_CONFIG_FILE',
@@ -94,7 +100,12 @@ class Subcommands(click.MultiCommand):
     help=_("""\
     Configuration file to use.  If not given, the environment variable
     MAILMAN_CONFIG_FILE is consulted and used if set.  If neither are given, a
-    default configuration file is loaded."""))
+    default configuration file is loaded."""),
+    is_eager=True, callback=initialize_config)
+@click.group(
+    cls=Subcommands,
+    context_settings=dict(help_option_names=['-h', '--help']))
+@click.pass_context
 @click.version_option(MAILMAN_VERSION_FULL, message='%(version)s')
 @public
 def main(ctx, config_file):
@@ -104,6 +115,4 @@ def main(ctx, config_file):
     Copyright 1998-2017 by the Free Software Foundation, Inc.
     http://www.list.org
     """
-    # Initialize the system.  Honor the -C flag if given.
-    initialize(config_file)
     # click handles dispatching to the subcommand via the Subcommands class.

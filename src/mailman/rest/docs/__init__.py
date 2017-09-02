@@ -19,20 +19,11 @@
 
 import threading
 
+from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from mailman.testing.helpers import wait_for_webservice
 from mailman.testing.layers import RESTLayer
 from public import public
-
-
-# New in Python 3.5.
-try:
-    from http import HTTPStatus
-except ImportError:                                 # pragma: nocover
-    class HTTPStatus:
-        FORBIDDEN = 403
-        NOT_FOUND = 404
-        OK = 200
 
 
 # We need a web server to vend non-mailman: urls.
@@ -78,6 +69,7 @@ class HTTPLayer(RESTLayer):
         cls._thread.join()
 
 
+# For flufl.testing -- define this doctest's layer.
 public(layer=HTTPLayer)
 
 

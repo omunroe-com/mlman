@@ -59,7 +59,6 @@ definition.
         CFG_FILE        = .../test.cfg
         DATA_DIR        = /var/lib/mailman/data
         ETC_DIR         = /etc
-        EXT_DIR         = /etc/mailman.d
         LIST_DATA_DIR   = /var/lib/mailman/lists
         LOCK_DIR        = /var/lock/mailman
         LOCK_FILE       = /var/lock/mailman/master.lck
