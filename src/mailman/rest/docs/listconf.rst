@@ -296,7 +296,7 @@ dictionary are ignored.
     server: WSGIServer/...
     status: 204
 
-Aliases are returned as a list on the ``aliases`` key.
+You can get all the mailing list's acceptable aliases through the REST API.
 
     >>> response = call_http(
     ...     'http://localhost:9001/3.0/lists/'
@@ -314,6 +314,23 @@ The mailing list has its aliases set.
     ...     print(alias)
     bar@example.net
     foo@example.com
+
+The aliases can be removed by using ``DELETE``.
+
+    >>> response = call_http(
+    ...     'http://localhost:9001/3.0/lists/'
+    ...     'ant@example.com/config/acceptable_aliases',
+    ...     method='DELETE')
+    content-length: 0
+    date: ...
+    server: WSGIServer/...
+    status: 204
+
+Now the mailing list has no aliases.
+
+    >>> aliases = IAcceptableAliasSet(mlist)
+    >>> print(len(list(aliases.aliases)))
+    0
 
 
 Header matches

@@ -329,3 +329,23 @@ class ListConfiguration:
             bad_request(response, str(error))
         else:
             no_content(response)
+
+    def on_delete(self, request, response):
+        if self._attribute is None:
+            bad_request(
+                response, 'Cannot delete the list configuration itself')
+            return
+        if self._attribute not in VALIDATORS:
+            bad_request(
+                response, 'Read-only attribute: {}'.format(self._attribute))
+            return
+        # This kind of sucks because it doesn't scale if the list of attributes
+        # which can be deleted grows.  So if we get too many we'll have to use
+        # a lookup table.  For now, this is good enough.
+        if self._attribute != 'acceptable_aliases':
+            bad_request(
+                response, 'Attribute cannot be DELETEd: {}'.format(
+                    self._attribute))
+            return
+        IAcceptableAliasSet(self._mlist).clear()
+        no_content(response)

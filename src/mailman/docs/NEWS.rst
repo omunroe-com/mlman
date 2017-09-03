@@ -31,6 +31,12 @@ Configuration
  * Mailman now also searches at ``/etc/mailman3/mailman.cfg`` for the
    configuration file.
 
+REST
+----
+* Allow a mailing list's acceptable aliases to be cleared by calling
+  ``DELETE`` on the list's ``config/acceptable_aliases`` resource.
+  (Closes #394)
+
 
 3.1.0 -- "Between The Wheels"
 =============================
