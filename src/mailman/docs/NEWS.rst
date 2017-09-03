@@ -12,6 +12,12 @@ Here is a history of user visible changes to Mailman.
 =====
 (201X-XX-XXX)
 
+REST
+----
+* Allow a mailing list's acceptable aliases to be cleared by calling
+  ``DELETE`` on the list's ``config/acceptable_aliases`` resource.
+  (Closes #394)
+
 
 3.1.0 -- "Between The Wheels"
 =============================

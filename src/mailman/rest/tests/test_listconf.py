@@ -467,3 +467,31 @@ class TestConfiguration(unittest.TestCase):
                 dict(info=''),
                 'PATCH')
             self.assertEqual(self._mlist.info, '')
+
+    def test_delete_top_level_listconf(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/lists/ant.example.com/config',
+                     method='DELETE')
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason,
+                         'Cannot delete the list configuration itself')
+
+    def test_delete_read_only_attribute(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api(
+                'http://localhost:9001/3.0/lists/ant.example.com/'
+                'config/post_id',
+                method='DELETE')
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason,
+                         'Read-only attribute: post_id')
+
+    def test_delete_undeletable_attribute(self):
+        with self.assertRaises(HTTPError) as cm:
+            call_api(
+                'http://localhost:9001/3.0/lists/ant.example.com/'
+                'config/administrivia',
+                method='DELETE')
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason,
+                         'Attribute cannot be DELETEd: administrivia')
