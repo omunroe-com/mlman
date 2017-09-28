@@ -19,6 +19,7 @@ site's custom ``mailman.cfg`` file.  The first file found is used.
 * ``var/etc/mailman.cfg`` relative to the current working directory
 * ``$HOME/.mailman.cfg``
 * ``/etc/mailman.cfg``
+* ``/etc/mailman3/mailman.cfg``
 * ``../../etc/mailman.cfg`` relative to the working directory of ``argv[0]``
 
 You can also use the ``-C`` option to specify an explicit path, and this

@@ -71,6 +71,10 @@ def search_for_configuration_file():
     config_path = '/etc/mailman.cfg'
     if os.path.exists(config_path):
         return os.path.abspath(config_path)
+    # /etc/mailman3/mailman.cfg
+    config_path = '/etc/mailman3/mailman.cfg'
+    if os.path.exists(config_path):
+        return os.path.abspath(config_path)
     # $argv0/../../etc/mailman.cfg
     bindir = os.path.dirname(sys.argv[0])
     parent = os.path.dirname(bindir)

@@ -10,6 +10,9 @@ Here is a history of user visible changes to Mailman.
 3.1.1
 =====
 (201X-XX-XXX)
+
+Bugs
+----
   * An AttributeError: 'str' object has no attribute 'decode' exception in
     subject prefixing is fixed.  (Closes #359)
   * Syntactically invalid sender addresses are now ignored.  (Closes #229)
@@ -21,6 +24,13 @@ Here is a history of user visible changes to Mailman.
     subaddresses can now be posted to.  (Closes #433)
   * Various message holds and rejects that gave 'N/A' as a reason now give an
     appropriate reason.  (Closes #368)
+
+Configuration
+-------------
+
+ * Mailman now also searches at ``/etc/mailman3/mailman.cfg`` for the
+   configuration file.
+
 
 3.1.0 -- "Between The Wheels"
 =============================

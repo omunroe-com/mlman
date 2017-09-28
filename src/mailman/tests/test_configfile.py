@@ -171,6 +171,17 @@ class TestConfigFileSearchWithChroot(TestConfigFileBase):
                 print('# Fake mailman.cfg file', file=fp)
             self.assertEqual(search_for_configuration_file(), config_file)
 
+    def test_etc_mailman3_file(self):
+        # Test /etc/mailman3/mailman.cfg
+        fake_etc = '/etc/mailman3'
+        fake_testdir = self._make_fake(fake_etc)
+        config_file = os.path.join(fake_etc, 'mailman.cfg')
+        with fakedirs(fake_testdir):
+            # Write a mostly empty configuration file.
+            with open(os.path.join(fake_testdir, 'mailman.cfg'), 'w') as fp:
+                print('# Fake mailman.cfg file', file=fp)
+            self.assertEqual(search_for_configuration_file(), config_file)
+
     def test_sibling_directory(self):
         # Test $argv0/../../etc/mailman.cfg
         fake_root = '/usr/local/mm3'
