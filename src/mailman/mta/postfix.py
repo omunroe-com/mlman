@@ -130,7 +130,7 @@ class LMTP:
             for mlist in sorted(by_domain[domain], key=sort_key):
                 aliases = list(utility.aliases(mlist))
                 width = max(len(alias) for alias in aliases) + \
-                    aliases[0].count('.') + 7
+                    aliases[0].count('.') + 10
                 print(ALIASTMPL.format(self._decorate(aliases.pop(0)),
                                        config, width), file=fp)
                 for alias in aliases:
@@ -142,8 +142,17 @@ class LMTP:
         # Postfix regex tables need regex matching listname or domains. This
         # method just decorates the name to be printed in the transport map
         # file or relay domains file.
+        # We have to do a bit more with the -bounces and -confirm names as
+        # they can have + extra information and that results in no match in
+        # regexp tables.
         if self.transport_file_type == 'regex':
-            return '/^{}$/'.format(name).replace('.', '\.')
+            local, at, domain = name.partition('@')
+            if local.endswith('-bounces') or local.endswith('-confirm'):
+                local = local.replace('.', '\.')
+                domain = domain.replace('.', '\.')
+                return '/^{}(\+.*)?@{}$/'.format(local, domain)
+            else:
+                return '/^{}$/'.format(name).replace('.', '\.')
         return name
 
     def _generate_domains_file(self, fp):

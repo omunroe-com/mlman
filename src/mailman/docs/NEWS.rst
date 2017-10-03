@@ -15,7 +15,10 @@ Here is a history of user visible changes to Mailman.
     subject prefixing is fixed.  (Closes #359)
   * Syntactically invalid sender addresses are now ignored.  (Closes #229)
   * Messages with no syntactically valid senders are now automatically
-   discarded.  (Closes #369)
+    discarded.  (Closes #369)
+  * Generated ``regexp`` tables for Postfix now account for possible ``+extra``
+    additions to the ``-bounces`` and ``-confirm`` addresses.  (Closes #401)
+
 
 3.1.0 -- "Between The Wheels"
 =============================
