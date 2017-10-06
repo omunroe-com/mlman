@@ -117,6 +117,13 @@ class NonmemberModeration:
         for sender in msg.senders:
             if ban_manager.is_banned(sender):
                 return False
+        if len(msg.senders) == 0:
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                reason = _('No sender was found in the message.')
+            _record_action(
+                msgdata, mlist.default_nonmember_action, 'No sender', reason)
+            return True
         # Every sender email must be a member or nonmember directly.  If it is
         # neither, make the email a nonmembers.
         for sender in msg.senders:
@@ -141,8 +148,9 @@ class NonmemberModeration:
             # Check the '*_these_nonmembers' properties first.  XXX These are
             # legacy attributes from MM2.1; their database type is 'pickle' and
             # they should eventually get replaced.
-            for action in ('accept', 'hold', 'reject', 'discard'):
-                legacy_attribute_name = '{}_these_nonmembers'.format(action)
+            for action_name in ('accept', 'hold', 'reject', 'discard'):
+                legacy_attribute_name = '{}_these_nonmembers'.format(
+                    action_name)
                 checklist = getattr(mlist, legacy_attribute_name)
                 for addr in checklist:
                     if ((addr.startswith('^') and re.match(addr, sender))
@@ -151,8 +159,8 @@ class NonmemberModeration:
                             # This will be translated at the point of use.
                             reason = (
                                 _('The sender is in the nonmember {} list'),
-                                action)
-                        _record_action(msgdata, action, sender, reason)
+                                action_name)
+                        _record_action(msgdata, action_name, sender, reason)
                         return True
             action = (mlist.default_nonmember_action
                       if nonmember.moderation_action is None

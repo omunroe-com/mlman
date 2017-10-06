@@ -306,3 +306,25 @@ A message body.
 """)
         result = rule.check(self._mlist, msg, {})
         self.assertFalse(result)
+
+    def test_no_senders(self):
+        rule = moderation.NonmemberModeration()
+        # Message without a From
+        msg = mfs("""\
+To: test@example.com
+Subject: A test message
+Message-ID: <ant>
+MIME-Version: 1.0
+
+A message body.
+""")
+        self.assertEqual(msg.senders, [])
+        msgdata = {}
+        # The NonmemberModeration rule should hit.
+        result = rule.check(self._mlist, msg, msgdata)
+        self.assertTrue(result, 'NonmemberModeration rule should hit')
+        self.assertEqual(msgdata, {
+            'member_moderation_action': Action.hold,
+            'moderation_reasons': ['No sender was found in the message.'],
+            'moderation_sender': 'No sender',
+            })
