@@ -39,7 +39,7 @@ class ModelMeta:
                 # order.  http://tinyurl.com/on8dy6f
                 for table in reversed(Model.metadata.sorted_tables):
                     connection.execute(table.delete())
-            except:
+            except:                             # noqa: E722 pragma: nocover
                 transaction.rollback()
                 raise
             else:

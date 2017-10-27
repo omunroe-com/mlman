@@ -28,7 +28,7 @@ def transaction():
     """Context manager for ensuring the transaction is complete."""
     try:
         yield
-    except:
+    except:                                              # noqa: E722
         config.db.abort()
         raise
     else:
@@ -50,7 +50,7 @@ def transactional(function):
             rtn = function(*args, **kws)
             config.db.commit()
             return rtn
-        except:
+        except:                                  # noqa: E722 pragma: nocover
             config.db.abort()
             raise
     return wrapper
