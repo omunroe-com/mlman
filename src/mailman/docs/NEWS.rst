@@ -18,6 +18,8 @@ Here is a history of user visible changes to Mailman.
     discarded.  (Closes #369)
   * Generated ``regexp`` tables for Postfix now account for possible ``+extra``
     additions to the ``-bounces`` and ``-confirm`` addresses.  (Closes #401)
+  * A list whose name is one of the ``admin``, ``bounces``, ``confirm``, etc.
+    subaddresses can now be posted to.  (Closes #433)	
 
 
 3.1.0 -- "Between The Wheels"

@@ -165,6 +165,38 @@ Subject: This will be recognized as a join command.
         get_queue_messages('in', expected_count=0)
         get_queue_messages('command', expected_count=1)
 
+    def test_mailing_list_with_subaddress_name(self):
+        # Test that we can post to a list whose name is a subaddress.
+        with transaction():
+            create_list('join@example.com')
+        self._lmtp.sendmail('anne@example.com',
+                            ['join@example.com'], """\
+From: anne@example.com
+To: join@example.com
+Message-ID: <ant>
+Subject: This will be recognized as a post to the join list.
+
+""")
+        # The message is in the incoming queue but not the command queue.
+        get_queue_messages('in', expected_count=1)
+        get_queue_messages('command', expected_count=0)
+
+    def test_mailing_list_with_subaddress_dash_name(self):
+        # Test that we can post to a list whose name is -subaddress.
+        with transaction():
+            create_list('-join@example.com')
+        self._lmtp.sendmail('anne@example.com',
+                            ['-join@example.com'], """\
+From: anne@example.com
+To: -join@example.com
+Message-ID: <ant>
+Subject: This will be recognized as a post to the -join list.
+
+""")
+        # The message is in the incoming queue but not the command queue.
+        get_queue_messages('in', expected_count=1)
+        get_queue_messages('command', expected_count=0)
+
 
 class TestBugs(unittest.TestCase):
     """Test some LMTP related bugs."""
