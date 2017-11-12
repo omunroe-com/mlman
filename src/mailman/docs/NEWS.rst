@@ -24,6 +24,9 @@ Bugs
     subaddresses can now be posted to.  (Closes #433)
   * Various message holds and rejects that gave 'N/A' as a reason now give an
     appropriate reason.  (Closes #368)
+  * A missing html_to_plain_text_command is now properly detected and logged.
+    (closes #345)
+	
 
 Configuration
 -------------
@@ -36,12 +39,6 @@ REST
 * Allow a mailing list's acceptable aliases to be cleared by calling
   ``DELETE`` on the list's ``config/acceptable_aliases`` resource.
   (Closes #394)
-
-
-Bugs
-----
- * A missing html_to_plain_text_command is now properly detected and logged.
-   (closes #345)
 
 
 3.1.0 -- "Between The Wheels"
