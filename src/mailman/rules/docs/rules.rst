@@ -30,6 +30,7 @@ names to rule objects.
     max-size True
     member-moderation True
     news-moderation True
+    no-senders True
     no-subject True
     nonmember-moderation True
     suspicious-header True

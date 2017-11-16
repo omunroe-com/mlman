@@ -15,43 +15,37 @@
 # You should have received a copy of the GNU General Public License along with
 # GNU Mailman.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test the `suspicious` rule."""
-
+"""Test the `implicit_dest` rule."""
 
 import unittest
 
-from email.header import Header
 from mailman.app.lifecycle import create_list
-from mailman.email.message import Message
-from mailman.rules import suspicious
+from mailman.rules import implicit_dest
+from mailman.testing.helpers import specialized_message_from_string as mfs
 from mailman.testing.layers import ConfigLayer
 
 
-class TestSuspicious(unittest.TestCase):
-    """Test the suspicious rule."""
+class TestImplicitDestination(unittest.TestCase):
+    """Test the implicit_dest rule."""
 
     layer = ConfigLayer
 
     def setUp(self):
         self._mlist = create_list('test@example.com')
-        self._rule = suspicious.SuspiciousHeader()
 
-    def test_header_instance(self):
-        msg = Message()
-        msg['From'] = Header('user@example.com')
-        self._mlist.bounce_matching_headers = 'from: spam@example.com'
-        result = self._rule.check(self._mlist, msg, {})
-        self.assertFalse(result)
+    def test_implicit_dest_returns_reason(self):
+        # Ensure implicit_dest rule returns a reason.
+        msg = mfs("""\
+From: anne@example.com
+To: bogus@example.com
+Subject: A Subject
+Message-ID: <ant>
 
-    def test_suspicious_returns_reason(self):
-        msg = Message()
-        msg['From'] = Header('spam@example.com')
-        self._mlist.bounce_matching_headers = 'from: spam@example.com'
+A message body.
+""")
+        rule = implicit_dest.ImplicitDestination()
         msgdata = {}
-        result = self._rule.check(self._mlist, msg, msgdata)
+        result = rule.check(self._mlist, msg, msgdata)
         self.assertTrue(result)
-        self.assertEqual(
-            msgdata['moderation_reasons'],
-            [('Header "{}" matched a bounce_matching_header line',
-              'spam@example.com')]
-            )
+        self.assertEqual(msgdata['moderation_reasons'],
+                         ['Message has implicit destination'])

@@ -28,7 +28,6 @@ from mailman.interfaces.command import ICLISubCommand
 from mailman.utilities.modules import find_components
 from mailman.version import MAILMAN_VERSION_FULL
 from public import public
-from zope.interface.verify import verifyObject
 
 
 # --help should display the subcommands by alphabetical order, except that
@@ -76,9 +75,7 @@ def main():
     # the plugins.  Punt on this for now.
     subparser = parser.add_subparsers(title='Commands')
     subcommands = []
-    for command_class in find_components('mailman.commands', ICLISubCommand):
-        command = command_class()
-        verifyObject(ICLISubCommand, command)
+    for command in find_components('mailman.commands', ICLISubCommand):
         subcommands.append(command)
     subcommands.sort(key=cmp_to_key(_help_sorter))
     for command in subcommands:

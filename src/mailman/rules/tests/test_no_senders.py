@@ -15,43 +15,38 @@
 # You should have received a copy of the GNU General Public License along with
 # GNU Mailman.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test the `suspicious` rule."""
-
+"""Test the `no_subject` header rule."""
 
 import unittest
 
-from email.header import Header
 from mailman.app.lifecycle import create_list
 from mailman.email.message import Message
-from mailman.rules import suspicious
+from mailman.rules import no_senders
 from mailman.testing.layers import ConfigLayer
 
 
-class TestSuspicious(unittest.TestCase):
-    """Test the suspicious rule."""
+class TestNoSender(unittest.TestCase):
+    """Test the no_senders rule."""
 
     layer = ConfigLayer
 
     def setUp(self):
         self._mlist = create_list('test@example.com')
-        self._rule = suspicious.SuspiciousHeader()
+        self._rule = no_senders.NoSenders()
 
-    def test_header_instance(self):
+    def test_message_has_no_sender(self):
         msg = Message()
-        msg['From'] = Header('user@example.com')
-        self._mlist.bounce_matching_headers = 'from: spam@example.com'
-        result = self._rule.check(self._mlist, msg, {})
-        self.assertFalse(result)
-
-    def test_suspicious_returns_reason(self):
-        msg = Message()
-        msg['From'] = Header('spam@example.com')
-        self._mlist.bounce_matching_headers = 'from: spam@example.com'
         msgdata = {}
         result = self._rule.check(self._mlist, msg, msgdata)
         self.assertTrue(result)
-        self.assertEqual(
-            msgdata['moderation_reasons'],
-            [('Header "{}" matched a bounce_matching_header line',
-              'spam@example.com')]
-            )
+        self.assertEqual(msgdata['moderation_reasons'],
+                         ['The message has no valid senders'])
+        self.assertEqual(msgdata['moderation_sender'], 'N/A')
+
+    def test_message_has_sender(self):
+        msg = Message()
+        msg['From'] = 'anne@example.com'
+        msgdata = {}
+        result = self._rule.check(self._mlist, msg, msgdata)
+        self.assertFalse(result)
+        self.assertEqual(msgdata, {})

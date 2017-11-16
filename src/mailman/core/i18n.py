@@ -47,3 +47,21 @@ def initialize(application=None):
 def handle_ConfigurationUpdatedEvent(event):
     if isinstance(event, ConfigurationUpdatedEvent):
         _.default = event.config.mailman.default_language
+
+
+@public
+def format_reasons(reasons):
+    """Translate and format hold and rejection reasons.
+
+    :param reasons: A list of reasons from the rules that hit.  Each reason is
+        a string to be translated or a tuple consisting of a string with {}
+        replacements and one or more replacement values.
+    :returns: A list of the translated and formatted strings.
+    """
+    new_reasons = []
+    for reason in reasons:
+        if isinstance(reason, tuple):
+            new_reasons.append(_(reason[0]).format(*reason[1:]))
+        else:
+            new_reasons.append(_(reason))
+    return new_reasons

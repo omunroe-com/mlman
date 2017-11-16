@@ -37,4 +37,11 @@ class NoSubject:
         # Convert the header value to a str because it may be an
         # email.header.Header instance.
         subject = str(msg.get('subject', '')).strip()
-        return subject == ''
+        if subject == '':
+            msgdata['moderation_sender'] = msg.sender
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                msgdata.setdefault('moderation_reasons', []).append(
+                    _('Message has no subject'))
+            return True
+        return False

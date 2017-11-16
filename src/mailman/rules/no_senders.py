@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along with
 # GNU Mailman.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The maximum message size rule."""
+"""Membership related rules."""
 
 from mailman.core.i18n import _
 from mailman.interfaces.rules import IRule
@@ -25,26 +25,21 @@ from zope.interface import implementer
 
 @public
 @implementer(IRule)
-class MaximumSize:
-    """The implicit destination rule."""
+class NoSenders:
+    """The message has no senders rule."""
 
-    name = 'max-size'
-    description = _('Catch messages that are bigger than a specified maximum.')
+    name = 'no-senders'
+    description = _('Match messages with no valid senders.')
     record = True
 
     def check(self, mlist, msg, msgdata):
         """See `IRule`."""
-        if mlist.max_message_size == 0:
+        if msg.sender:
             return False
-        assert hasattr(msg, 'original_size'), (
-            'Message was not sized on initial parsing.')
-        # The maximum size is specified in 1024 bytes.
-        if msg.original_size / 1024.0 > mlist.max_message_size:
-            msgdata['moderation_sender'] = msg.sender
+        else:
+            msgdata['moderation_sender'] = 'N/A'
             with _.defer_translation():
                 # This will be translated at the point of use.
                 msgdata.setdefault('moderation_reasons', []).append(
-                    (_('The message is larger than the {} KB maximum size'),
-                     mlist.max_message_size))
+                    _('The message has no valid senders'))
             return True
-        return False

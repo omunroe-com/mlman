@@ -69,6 +69,17 @@ To: test@example.com
         items = get_queue_messages('out', expected_count=1)
         self.assertEqual(items[0].msgdata.get('marker'), 'posting')
 
+    def test_posting_from_invalid(self):
+        # A message posted to the list goes through the posting chain even if
+        # From: is invalid.
+        del self._msg['from']
+        self._msg['From'] = 'anne@example.com.'
+        msgdata = dict(listid='test.example.com')
+        config.switchboards['in'].enqueue(self._msg, msgdata)
+        self._in.run()
+        items = get_queue_messages('out', expected_count=1)
+        self.assertEqual(items[0].msgdata.get('marker'), 'posting')
+
     def test_owner(self):
         # A message posted to the list goes through the posting chain.
         msgdata = dict(listid='test.example.com',

@@ -28,7 +28,6 @@ import os
 import shutil
 import logging
 import tempfile
-import subprocess
 
 from contextlib import ExitStack, suppress
 from email.iterators import typed_subpart_iterator
@@ -46,6 +45,7 @@ from mailman.utilities.string import oneline
 from mailman.version import VERSION
 from public import public
 from string import Template
+from subprocess import CalledProcessError, check_output
 from zope.interface import implementer
 
 
@@ -277,9 +277,8 @@ def to_plaintext(msg):
             template = Template(config.mailman.html_to_plain_text_command)
             command = template.safe_substitute(filename=filename).split()
             try:
-                stdout = subprocess.check_output(
-                    command, universal_newlines=True)
-            except subprocess.CalledProcessError:
+                stdout = check_output(command, universal_newlines=True)
+            except (CalledProcessError, FileNotFoundError, PermissionError):
                 log.exception('HTML -> text/plain command error')
             else:
                 # Replace the payload of the subpart with the converted text

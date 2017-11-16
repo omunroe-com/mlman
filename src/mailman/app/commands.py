@@ -19,18 +19,11 @@
 
 from mailman.config import config
 from mailman.interfaces.command import IEmailCommand
-from mailman.utilities.modules import find_components
+from mailman.utilities.modules import add_components
 from public import public
-from zope.interface.verify import verifyObject
 
 
 @public
 def initialize():
     """Initialize the email commands."""
-    for command_class in find_components('mailman.commands', IEmailCommand):
-        command = command_class()
-        verifyObject(IEmailCommand, command)
-        assert command_class.name not in config.commands, (
-            'Duplicate email command "{}" found in {}'.format(
-                command_class.name, command_class.__module__))
-        config.commands[command_class.name] = command_class()
+    add_components('mailman.commands', IEmailCommand, config.commands)

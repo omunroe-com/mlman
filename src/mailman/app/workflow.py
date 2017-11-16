@@ -69,7 +69,7 @@ class Workflow:
             return step()
         except IndexError:
             raise StopIteration
-        except:
+        except:                                     # noqa: E722
             log.exception('deque: {}'.format(COMMASPACE.join(self._next)))
             raise
 

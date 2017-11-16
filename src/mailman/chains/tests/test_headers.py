@@ -25,7 +25,8 @@ from mailman.chains.headers import HeaderMatchRule, make_link
 from mailman.config import config
 from mailman.core.chains import process
 from mailman.email.message import Message
-from mailman.interfaces.chain import DiscardEvent, HoldEvent, LinkAction
+from mailman.interfaces.chain import (
+    DiscardEvent, HoldEvent, LinkAction, RejectEvent)
 from mailman.interfaces.mailinglist import IHeaderMatchList
 from mailman.testing.helpers import (
     LogFileMark, configuration, event_subscribers,
@@ -343,3 +344,55 @@ A message body.
         # ...and are actually the identical objects.
         for link1, link2 in zip(links_1, links_2):
             self.assertIs(link1.rule, link2.rule)
+
+    def test_hold_returns_reason(self):
+        # Test that a match with hold action returns a reason
+        msg = mfs("""\
+From: anne@example.com
+To: test@example.com
+Subject: Bad subject
+Message-ID: <ant>
+
+body
+
+""")
+        msgdata = {}
+        header_matches = IHeaderMatchList(self._mlist)
+        header_matches.append('Subject', 'Bad', 'hold')
+        # This event subscriber records the event that occurs when the message
+        # is processed by the owner chain.
+        events = []
+        with event_subscribers(events.append):
+            process(self._mlist, msg, msgdata, start_chain='header-match')
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertIsInstance(event, HoldEvent)
+        self.assertEqual(msgdata['moderation_reasons'],
+                         [('Header "{}" matched a header rule',
+                           'Bad subject')])
+
+    def test_reject_returns_reason(self):
+        # Test that a match with reject action returns a reason
+        msg = mfs("""\
+From: anne@example.com
+To: test@example.com
+Subject: Bad subject
+Message-ID: <ant>
+
+body
+
+""")
+        msgdata = {}
+        header_matches = IHeaderMatchList(self._mlist)
+        header_matches.append('Subject', 'Bad', 'reject')
+        # This event subscriber records the event that occurs when the message
+        # is processed by the owner chain.
+        events = []
+        with event_subscribers(events.append):
+            process(self._mlist, msg, msgdata, start_chain='header-match')
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertIsInstance(event, RejectEvent)
+        self.assertEqual(msgdata['moderation_reasons'],
+                         [('Header "{}" matched a header rule',
+                           'Bad subject')])

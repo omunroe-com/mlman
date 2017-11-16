@@ -21,6 +21,7 @@ from mailman.config import config
 from mailman.interfaces.chain import (
     IChain, IChainIterator, IChainLink, IMutableChain, LinkAction)
 from mailman.interfaces.rules import IRule
+from mailman.utilities.modules import abstract_component
 from public import public
 from zope.interface import implementer
 
@@ -55,6 +56,7 @@ class Link:
 
 
 @public
+@abstract_component
 @implementer(IChain, IChainIterator)
 class TerminalChainBase:
     """A base chain that always matches and executes a method.
@@ -85,6 +87,32 @@ class TerminalChainBase:
 
 
 @public
+@abstract_component
+@implementer(IChain)
+class JumpChainBase:
+    """A base chain that simplifies jumping to another chain."""
+    def jump_to(self, mlist, msg, msgsdata):
+        """Return the chain to jump to.
+
+        This must be overridden by subclasses.
+
+        :param mlist: The mailing list.
+        :param msg: The message.
+        :param msgdata: The message metadata.
+        :return: The name of the chain to jump to.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    def get_links(self, mlist, msg, msgdata):
+        jump_chain = self.jump_to(mlist, msg, msgdata)
+        return iter([
+            Link('truth', LinkAction.jump, jump_chain),
+            ])
+
+
+@public
+@abstract_component
 @implementer(IMutableChain)
 class Chain:
     """Generic chain base class."""

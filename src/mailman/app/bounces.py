@@ -45,6 +45,7 @@ elog = logging.getLogger('mailman.error')
 blog = logging.getLogger('mailman.bounce')
 
 DOT = '.'
+NL = '\n'
 
 
 @public
@@ -56,8 +57,12 @@ def bounce_message(mlist, msg, error=None):
     :param msg: The original message.
     :type msg: `email.message.Message`
     :param error: Optional exception causing the bounce.  The exception
-        instance must have a `.message` attribute.
-    :type error: Exception
+        instance must have a `.message` attribute.  The exception *may* have a
+        non-None `.reasons` attribute which would be a list of reasons for the
+        rejection, and it may have a non-None `.substitutions` attribute.  The
+        latter, along with the formatted reasons will be interpolated into the
+        message (`.reasons` gets put into the `$reasons` placeholder).
+    :type error: RejectMessage
     """
     # Bounce a message back to the sender, with an error message if provided
     # in the exception argument.  .sender might be None or the empty string.
@@ -67,10 +72,9 @@ def bounce_message(mlist, msg, error=None):
         return
     subject = msg.get('subject', _('(no subject)'))
     subject = oneline(subject, mlist.preferred_language.charset)
-    if error is None:
-        notice = _('[No bounce details are available]')
-    else:
-        notice = _(error.message)
+    notice = (_('[No bounce details are available]')
+              if error is None
+              else str(error))
     # Currently we always craft bounces as MIME messages.
     bmsg = UserNotification(msg.sender, mlist.owner_address, subject,
                             lang=mlist.preferred_language)

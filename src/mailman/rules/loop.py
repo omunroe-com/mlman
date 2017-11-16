@@ -37,4 +37,11 @@ class Loop:
         # Has this message already been posted to this list?
         list_posts = set(value.strip().lower()
                          for value in msg.get_all('list-post', []))
-        return mlist.posting_address in list_posts
+        if mlist.posting_address in list_posts:
+            msgdata['moderation_sender'] = msg.sender
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                msgdata.setdefault('moderation_reasons', []).append(
+                    _('Message has already been posted to this list'))
+            return True
+        return False

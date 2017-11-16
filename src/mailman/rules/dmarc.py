@@ -298,29 +298,35 @@ class DMARCMitigation:
         if mlist.dmarc_mitigate_action is DMARCMitigateAction.no_mitigation:
             # Don't bother to check if we're not going to do anything.
             return False
-        dn, addr = parseaddr(msg.get('from'))
-        if maybe_mitigate(mlist, addr):
+        display_name, address = parseaddr(msg.get('from'))
+        if maybe_mitigate(mlist, address):
             # If dmarc_mitigate_action is discard or reject, this rule fires
             # and jumps to the 'moderation' chain to do the actual discard.
             # Otherwise, the rule misses but sets a flag for the dmarc handler
             # to do the appropriate action.
             msgdata['dmarc'] = True
             if mlist.dmarc_mitigate_action is DMARCMitigateAction.discard:
-                msgdata['moderation_action'] = 'discard'
-                msgdata['moderation_reasons'] = [_('DMARC moderation')]
+                msgdata['dmarc_action'] = 'discard'
+                with _.defer_translation():
+                    # This will be translated at the point of use.
+                    msgdata.setdefault('moderation_reasons', []).append(
+                        _('DMARC moderation'))
             elif mlist.dmarc_mitigate_action is DMARCMitigateAction.reject:
                 listowner = mlist.owner_address       # noqa F841
-                reason = (mlist.dmarc_moderation_notice or
-                          _('You are not allowed to post to this mailing '
-                            'list From: a domain which publishes a DMARC '
-                            'policy of reject or quarantine, and your message'
-                            ' has been automatically rejected.  If you think '
-                            'that your messages are being rejected in error, '
-                            'contact the mailing list owner at ${listowner}.'))
-                msgdata['moderation_reasons'] = [wrap(reason)]
-                msgdata['moderation_action'] = 'reject'
+                with _.defer_translation():
+                    # This will be translated at the point of use.
+                    reason = (mlist.dmarc_moderation_notice or _(
+                        'You are not allowed to post to this mailing '
+                        'list From: a domain which publishes a DMARC '
+                        'policy of reject or quarantine, and your message'
+                        ' has been automatically rejected.  If you think '
+                        'that your messages are being rejected in error, '
+                        'contact the mailing list owner at ${listowner}.'))
+                msgdata.setdefault('moderation_reasons', []).append(
+                    wrap(reason))
+                msgdata['dmarc_action'] = 'reject'
             else:
                 return False
-            msgdata['moderation_sender'] = addr
+            msgdata['moderation_sender'] = address
             return True
         return False

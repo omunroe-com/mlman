@@ -25,10 +25,9 @@ from mailman.core.i18n import _
 from mailman.interfaces.handler import IHandler
 from mailman.interfaces.pipeline import (
     DiscardMessage, IPipeline, RejectMessage)
-from mailman.utilities.modules import find_components
+from mailman.utilities.modules import add_components
 from public import public
 from zope.interface import implementer
-from zope.interface.verify import verifyObject
 
 
 dlog = logging.getLogger('mailman.debug')
@@ -58,7 +57,7 @@ def process(mlist, msg, msgdata, pipeline_name='built-in'):
         except RejectMessage as error:
             vlog.info(
                 '{} rejected by "{}" pipeline handler "{}": {}'.format(
-                    message_id, pipeline_name, handler.name, error.message))
+                    message_id, pipeline_name, handler.name, str(error)))
             bounce_message(mlist, msg, error)
 
 
@@ -139,13 +138,7 @@ class VirginPipeline(BasePipeline):
 def initialize():
     """Initialize the pipelines."""
     # Find all handlers in the registered plugins.
-    for handler_class in find_components('mailman.handlers', IHandler):
-        handler = handler_class()
-        verifyObject(IHandler, handler)
-        assert handler.name not in config.handlers, (
-            'Duplicate handler "{}" found in {}'.format(
-                handler.name, handler_class))
-        config.handlers[handler.name] = handler
+    add_components('mailman.handlers', IHandler, config.handlers)
     # Set up some pipelines.
     for pipeline_class in (OwnerPipeline, PostingPipeline, VirginPipeline):
         pipeline = pipeline_class()

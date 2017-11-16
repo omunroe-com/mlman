@@ -38,5 +38,11 @@ class BannedAddress:
         ban_manager = IBanManager(mlist)
         for sender in msg.senders:
             if ban_manager.is_banned(sender):
+                msgdata['moderation_sender'] = sender
+                with _.defer_translation():
+                    # This will be translated at the point of use.
+                    msgdata.setdefault('moderation_reasons', []).append(
+                        (_('Message sender {} is banned from this list'),
+                         sender))
                 return True
         return False

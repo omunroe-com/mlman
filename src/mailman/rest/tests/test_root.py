@@ -283,6 +283,7 @@ class TestSiteTemplates(unittest.TestCase):
                 'list:user:notice:post': '',
                 'list:user:notice:probe': '',
                 'list:user:notice:refuse': '',
+                'list:user:notice:rejected': '',
                 'list:user:notice:welcome': 'http://example.org/welcome',
                 'password': 'some password',
                 'username': 'anne.person',

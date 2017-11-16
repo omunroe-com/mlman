@@ -25,6 +25,19 @@ from public import public
 
 
 @public
+def abstract_component(cls):
+    """Decorator preventing `find_components()` from instantiating the class.
+
+    Normally, `find_components()` instantiates any component class that
+    it finds matching the given interface.  Some component classes must not be
+    instantiated though, because they act as base classes.  Put this decorator
+    on the class definition to prevent instantiation.
+    """
+    cls.__abstract_component__ = True
+    return cls
+
+
+@public
 def find_name(dotted_name):
     """Import and return the named object in package space.
 
@@ -55,24 +68,36 @@ def call_name(dotted_name, *args, **kws):
     return named_callable(*args, **kws)
 
 
-@public
 def scan_module(module, interface):
-    """Return all the items in a module that conform to an interface.
+    """Return all the object in a module that conform to an interface.
 
-    :param module: A module object.  The module's `__all__` will be scanned.
+    Scan every item named in the module's `__all__`.  If that item conforms to
+    the given interface, *and* the item is not declared as an
+    `@abstract_component`, then instantiate the item and return the resulting
+    instance.
+
+    :param module: A module object.
     :type module: module
     :param interface: The interface that returned objects must conform to.
     :type interface: `Interface`
-    :return: The sequence of matching components.
-    :rtype: objects implementing `interface`
+    :return: The sequence of instantiated matching components.
+    :rtype: instantiated objects implementing `interface`
     """
     missing = object()
     for name in module.__all__:
         component = getattr(module, name, missing)
         assert component is not missing, (
             '%s has bad __all__: %s' % (module, name))   # pragma: no cover
-        if interface.implementedBy(component):
-            yield component
+        if (interface.implementedBy(component)
+                # We cannot use getattr() here because that will return True
+                # for all subclasses.  __abstract_component__ should *not* be
+                # inherited, meaning subclasses must declare themselves to be
+                # abstract if they also don't want to be instantiated.  Only
+                # by looking at the component's __dict__ can we know for sure
+                # where the marker has been placed.  The value of
+                # __abstract_component__ doesn't matter, only its presence.
+                and '__abstract_component__' not in component.__dict__):
+            yield component()
 
 
 @public
@@ -80,14 +105,15 @@ def find_components(package, interface):
     """Find components which conform to a given interface.
 
     Search all the modules in a given package, returning an iterator over all
-    objects found that conform to the given interface.
+    objects found that conform to the given interface, unless that object is
+    decorated with `@abstract_component`.
 
     :param package: The package path to search.
     :type package: string
     :param interface: The interface that returned objects must conform to.
     :type interface: `Interface`
-    :return: The sequence of matching components.
-    :rtype: objects implementing `interface`
+    :return: The sequence of instantiated matching components.
+    :rtype: instantiated objects implementing `interface`
     """
     for filename in resource_listdir(package, ''):
         basename, extension = os.path.splitext(filename)
@@ -99,6 +125,35 @@ def find_components(package, interface):
         if not hasattr(module, '__all__'):
             continue
         yield from scan_module(module, interface)
+
+
+@public
+def add_components(package, interface, mapping):
+    """Add components to a given mapping.
+
+    Similarly to `find_components()` this inspects all modules in a given
+    package looking for objects that conform to a given interface.  All such
+    found objects (unless decorated with `@abstract_component`) are added to
+    the given mapping, keyed by the object's `.name` attribute, which is
+    required.  It is a fatal error if that key already exists in the mapping.
+
+    :param package: The package path to search.
+    :type package: string
+    :param interface: The interface that returned objects must conform to.
+        Objects found must have a `.name` attribute containing a unique
+        string.
+    :type interface: `Interface`
+    :param mapping: The mapping to add the found components to.
+    :type mapping: A dict-like mapping.  This only needs to support
+        containment tests (e.g. `in` and `not in`) and `__setitem__()`.
+    :raises RuntimeError: when a duplicate key is found.
+    """
+    for component in find_components(package, interface):
+        if component.name in mapping:
+            raise RuntimeError(
+                'Duplicate key "{}" found in {}; previously {}'.format(
+                    component.name, component, mapping[component.name]))
+        mapping[component.name] = component
 
 
 @public

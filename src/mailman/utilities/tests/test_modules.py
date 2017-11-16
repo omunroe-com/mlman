@@ -23,7 +23,7 @@ import unittest
 
 from contextlib import ExitStack, contextmanager
 from mailman.interfaces.styles import IStyle
-from mailman.utilities.modules import find_components
+from mailman.utilities.modules import add_components, find_components
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -50,8 +50,8 @@ class TestModuleImports(unittest.TestCase):
     def test_find_modules_with_dotfiles(self):
         # Emacs creates lock files when a single file is opened by more than
         # one user. These files look like .#<filename>.py because of which
-        # find_components tries to import them but fails. All such files should
-        # be ignored by default.
+        # find_components() tries to import them but fails. All such files
+        # should be ignored by default.
         with ExitStack() as resources:
             # Creating a temporary directory and adding it to sys.path.
             temp_package = resources.enter_context(TemporaryDirectory())
@@ -62,9 +62,9 @@ class TestModuleImports(unittest.TestCase):
             module_path = os.path.join(temp_package, 'mypackage')
             os.mkdir(module_path)
             init_file = os.path.join(module_path, '__init__.py')
+            Path(init_file).touch()
             good_file = os.path.join(module_path, 'goodfile.py')
             bad_file = os.path.join(module_path, '.#badfile.py')
-            Path(init_file).touch()
             with open(good_file, 'w', encoding='utf-8') as fp:
                 print("""\
 from public import public
@@ -97,3 +97,134 @@ class BadStyle:
                      for component
                      in find_components('mypackage', IStyle)]
             self.assertEqual(names, ['good-style'])
+
+    def test_find_components_no_instantiate(self):
+        # find_components() now instantiates the class unless it's been
+        # decorated with the @abstract_component decorator.
+        with ExitStack() as resources:
+            # Creating a temporary directory and adding it to sys.path.
+            temp_package = resources.enter_context(TemporaryDirectory())
+            resources.enter_context(hack_syspath(0, temp_package))
+            resources.callback(clean_mypackage)
+            # Create a module inside the above package along with an
+            # __init__.py file so that we can import from it.
+            module_path = os.path.join(temp_package, 'mypackage')
+            os.mkdir(module_path)
+            init_file = os.path.join(module_path, '__init__.py')
+            Path(init_file).touch()
+            component_file = os.path.join(module_path, 'components.py')
+            with open(component_file, 'w', encoding='utf-8') as fp:
+                print("""\
+from mailman.interfaces.styles import IStyle
+from mailman.utilities.modules import abstract_component
+from public import public
+from zope.interface import implementer
+
+@public
+@implementer(IStyle)
+class ConcreteStyle:
+    name = 'concrete-style'
+    def apply(self):
+        pass
+
+@public
+@implementer(IStyle)
+@abstract_component
+class AbstractStyle:
+    name = 'abstract-style'
+    def apply(self):
+        pass
+""", file=fp)
+            names = [component.name
+                     for component
+                     in find_components('mypackage', IStyle)]
+            self.assertEqual(names, ['concrete-style'])
+
+    def test_add_components(self):
+        with ExitStack() as resources:
+            # Creating a temporary directory and adding it to sys.path.
+            temp_package = resources.enter_context(TemporaryDirectory())
+            resources.enter_context(hack_syspath(0, temp_package))
+            resources.callback(clean_mypackage)
+            # Create a module inside the above package along with an
+            # __init__.py file so that we can import from it.
+            module_path = os.path.join(temp_package, 'mypackage')
+            os.mkdir(module_path)
+            init_file = os.path.join(module_path, '__init__.py')
+            Path(init_file).touch()
+            component_file = os.path.join(module_path, 'components.py')
+            with open(component_file, 'w', encoding='utf-8') as fp:
+                print("""\
+from mailman.interfaces.styles import IStyle
+from mailman.utilities.modules import abstract_component
+from public import public
+from zope.interface import implementer
+
+@public
+@implementer(IStyle)
+class StyleA:
+    name = 'styleA'
+    def apply(self):
+        pass
+
+@public
+@implementer(IStyle)
+@abstract_component
+class StyleB:
+    name = 'styleB'
+    def apply(self):
+        pass
+
+@public
+@implementer(IStyle)
+class StyleC:
+    name = 'styleC'
+    def apply(self):
+        pass
+""", file=fp)
+            styles = {}
+            add_components('mypackage', IStyle, styles)
+            self.assertEqual(set(styles), {'styleA', 'styleC'})
+
+    def test_add_components_duplicates(self):
+        # A duplicate name exists, so a RuntimeError is raised.
+        with ExitStack() as resources:
+            # Creating a temporary directory and adding it to sys.path.
+            temp_package = resources.enter_context(TemporaryDirectory())
+            resources.enter_context(hack_syspath(0, temp_package))
+            resources.callback(clean_mypackage)
+            # Create a module inside the above package along with an
+            # __init__.py file so that we can import from it.
+            module_path = os.path.join(temp_package, 'mypackage')
+            os.mkdir(module_path)
+            init_file = os.path.join(module_path, '__init__.py')
+            Path(init_file).touch()
+            component_file = os.path.join(module_path, 'components.py')
+            with open(component_file, 'w', encoding='utf-8') as fp:
+                print("""\
+from mailman.interfaces.styles import IStyle
+from mailman.utilities.modules import abstract_component
+from public import public
+from zope.interface import implementer
+
+@public
+@implementer(IStyle)
+class StyleA1:
+    name = 'styleA'
+    def apply(self):
+        pass
+
+@public
+@implementer(IStyle)
+class StyleA2:
+    name = 'styleA'
+    def apply(self):
+        pass
+""", file=fp)
+            with self.assertRaisesRegex(
+                    RuntimeError,
+                    'Duplicate key "styleA" found in '
+                    '<mypackage.components.StyleA2 object at .*>; '
+                    'previously <mypackage.components.StyleA1 object at '
+                    '.*>'):
+                add_components('mypackage', IStyle, {})

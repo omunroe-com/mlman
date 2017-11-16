@@ -88,6 +88,7 @@ built-in chain.  No rules hit and so the message is accepted.
     Hits:
     Misses:
         dmarc-mitigation
+        no-senders
         approved
         emergency
         loop
@@ -126,6 +127,7 @@ moderator approval.
         member-moderation
     Misses:
         dmarc-mitigation
+        no-senders
         approved
         emergency
         loop
@@ -153,6 +155,7 @@ Anne's moderation action can also be set to `discard`...
         member-moderation
     Misses:
         dmarc-mitigation
+        no-senders
         approved
         emergency
         loop
@@ -179,6 +182,7 @@ Anne's moderation action can also be set to `discard`...
         member-moderation
     Misses:
         dmarc-mitigation
+        no-senders
         approved
         emergency
         loop
@@ -220,6 +224,7 @@ moderator approval.
         nonmember-moderation
     Misses:
         dmarc-mitigation
+        no-senders
         approved
         emergency
         loop

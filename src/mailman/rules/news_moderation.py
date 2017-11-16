@@ -38,4 +38,11 @@ class ModeratedNewsgroup:
 
     def check(self, mlist, msg, msgdata):
         """See `IRule`."""
-        return mlist.newsgroup_moderation == NewsgroupModeration.moderated
+        if mlist.newsgroup_moderation is NewsgroupModeration.moderated:
+            msgdata['moderation_sender'] = msg.sender
+            with _.defer_translation():
+                # This will be translated at the point of use.
+                msgdata.setdefault('moderation_reasons', []).append(
+                    _('Post to a moderated newsgroup gateway'))
+            return True
+        return False

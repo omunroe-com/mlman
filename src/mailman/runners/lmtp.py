@@ -111,11 +111,8 @@ def split_recipient(address):
     """
     localpart, domain = address.split('@', 1)
     localpart = localpart.split(config.mta.verp_delimiter, 1)[0]
-    parts = localpart.split(DASH)
-    if parts[-1] in SUBADDRESS_NAMES:
-        listname = DASH.join(parts[:-1])
-        subaddress = parts[-1]
-    else:
+    listname, dash, subaddress = localpart.rpartition('-')
+    if subaddress not in SUBADDRESS_NAMES or listname == '' or dash == '':
         listname = localpart
         subaddress = None
     return listname, subaddress, domain

@@ -51,7 +51,7 @@ class TestAccept(unittest.TestCase):
         self._mlist = create_list('ant@example.com')
         self._msg = mfs("""\
 From: anne@example.com
-To: test@example.com
+To: ant@example.com
 Subject: Ignore
 
 """)

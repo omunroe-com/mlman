@@ -90,15 +90,15 @@ def deliver(mlist, msg, msgdata):
     if size is None:
         size = len(msg.as_string())
     substitutions = dict(
-        msgid       = msg.get('message-id', 'n/a'),   # noqa: E221, E251
-        listname    = mlist.fqdn_listname,            # noqa: E221, E251
-        sender      = original_sender,                # noqa: E221, E251
-        recip       = len(original_recipients),       # noqa: E221, E251
-        size        = size,                           # noqa: E221, E251
-        time        = t1 - t0,                        # noqa: E221, E251
-        refused     = len(refused),                   # noqa: E221, E251
-        smtpcode    = 'n/a',                          # noqa: E221, E251
-        smtpmsg     = 'n/a',                          # noqa: E221, E251
+        msgid       = msg.get('message-id', 'n/a'),   # noqa: E221,E251
+        listname    = mlist.fqdn_listname,            # noqa: E221,E251
+        sender      = original_sender,                # noqa: E221,E251
+        recip       = len(original_recipients),       # noqa: E221,E251
+        size        = size,                           # noqa: E221,E251
+        time        = t1 - t0,                        # noqa: E221,E251
+        refused     = len(refused),                   # noqa: E221,E251
+        smtpcode    = 'n/a',                          # noqa: E221,E251
+        smtpmsg     = 'n/a',                          # noqa: E221,E251
         )
     template = config.logging.smtp.every
     if template.lower() != 'no':
@@ -141,9 +141,9 @@ def deliver(mlist, msg, msgdata):
         template = config.logging.smtp.failure
         if template.lower() != 'no':
             substitutions.update(
-                recip       = recipient,            # noqa: E221, E251
-                smtpcode    = code,                 # noqa: E221, E251
-                smtpmsg     = smtp_message,         # noqa: E221, E251
+                recip       = recipient,            # noqa: E221,E251
+                smtpcode    = code,                 # noqa: E221,E251
+                smtpmsg     = smtp_message,         # noqa: E221,E251
                 )
             log.info('%s', expand(template, mlist, substitutions))
     # Return the results

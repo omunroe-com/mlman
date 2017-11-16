@@ -23,7 +23,6 @@ from mailman.config import config
 from mailman.core.initialize import initialize_1
 from mailman.database.model import Model
 from mailman.utilities.string import expand
-from public import public
 from sqlalchemy import create_engine
 
 
@@ -35,7 +34,7 @@ except AttributeError:
     url = expand(config.database.url, None, config.paths)
 
 
-@public
+# We can't use @public here.  See GL#423
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
@@ -51,7 +50,7 @@ def run_migrations_offline():
         context.run_migrations()
 
 
-@public
+# We can't use @public here.  See GL#423
 def run_migrations_online():
     """Run migrations in 'online' mode.
 

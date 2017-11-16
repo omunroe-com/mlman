@@ -60,9 +60,9 @@ the eventual moderation chain.
     >>> member_rule.check(mlist, member_msg, msgdata)
     True
     >>> dump_msgdata(msgdata)
-    moderation_action : hold
-    moderation_reasons: ['The message comes from a moderated member']
-    moderation_sender : aperson@example.com
+    member_moderation_action: hold
+    moderation_reasons      : ['The message comes from a moderated member']
+    moderation_sender       : aperson@example.com
 
 
 Nonmembers
@@ -107,9 +107,9 @@ rule matches and the message metadata again carries some useful information.
     >>> nonmember_rule.check(mlist, nonmember_msg, msgdata)
     True
     >>> dump_msgdata(msgdata)
-    moderation_action : hold
-    moderation_reasons: ['The message is not from a list member']
-    moderation_sender : bperson@example.com
+    member_moderation_action: hold
+    moderation_reasons      : ['The message is not from a list member']
+    moderation_sender       : bperson@example.com
 
 Of course, the nonmember action can be set to defer the decision, in which
 case the rule does not match.
@@ -161,9 +161,9 @@ nonmember of the list.  The rule also matches.
     >>> nonmember_rule.check(mlist, msg, msgdata)
     True
     >>> dump_msgdata(msgdata)
-    moderation_action : hold
-    moderation_reasons: ['The message is not from a list member']
-    moderation_sender : cperson@example.com
+    member_moderation_action: hold
+    moderation_reasons      : ['The message is not from a list member']
+    moderation_sender       : cperson@example.com
 
     >>> dump_list(mlist.members.members, key=memberkey)
     <Member: Anne Person <aperson@example.com>

@@ -48,8 +48,11 @@ class DiscardingHandler:
 class RejectHandler:
     name = 'rejecting'
 
+    def __init__(self, message):
+        self.message = message
+
     def process(self, mlist, msg, msgdata):
-        raise RejectMessage('by test handler')
+        raise RejectMessage(self.message)
 
 
 @implementer(IPipeline)
@@ -66,8 +69,11 @@ class RejectingPipeline:
     name = 'test-rejecting'
     description = 'Rejectinging test pipeline'
 
+    def __init__(self):
+        self.message = 'by test handler'
+
     def __iter__(self):
-        yield RejectHandler()
+        yield RejectHandler(self.message)
 
 
 class TestPostingPipeline(unittest.TestCase):
@@ -109,18 +115,49 @@ testing
             '"discarding": by test handler'))
 
     def test_rejecting_pipeline(self):
-        # If a handler in the pipeline raises DiscardMessage, the message will
-        # be thrown away, but with a log message.
+        # If a handler in the pipeline raises RejectMessage, the post will
+        # be bounced with a log message.
         mark = LogFileMark('mailman.vette')
         process(self._mlist, self._msg, {}, 'test-rejecting')
         line = mark.readline()[:-1]
-        self.assertTrue(line.endswith(
+        self.assertEqual(
+            line[-80:],
             '<ant> rejected by "test-rejecting" pipeline handler '
-            '"rejecting": by test handler'))
+            '"rejecting": by test handler',
+            line)
         # In the rejection case, the original message will also be in the
         # virgin queue.
         items = get_queue_messages('virgin', expected_count=1)
-        self.assertEqual(str(items[0].msg['subject']), 'a test')
+        self.assertEqual(
+            str(items[0].msg.get_payload(1).get_payload(0)['subject']),
+            'a test')
+        # The first payload contains the rejection reason.
+        payload = items[0].msg.get_payload(0).get_payload()
+        self.assertEqual(payload, 'by test handler')
+
+    def test_rejecting_pipeline_without_message(self):
+        # Similar to above, but without a rejection message.
+        pipeline = config.pipelines['test-rejecting']
+        message = pipeline.message
+        self.addCleanup(setattr, pipeline, 'message', message)
+        pipeline.message = None
+        mark = LogFileMark('mailman.vette')
+        process(self._mlist, self._msg, {}, 'test-rejecting')
+        line = mark.readline()[:-1]
+        self.assertEqual(
+            line[-91:],
+            '<ant> rejected by "test-rejecting" pipeline handler '
+            '"rejecting": [No details are available]',
+            line)
+        # In the rejection case, the original message will also be in the
+        # virgin queue.
+        items = get_queue_messages('virgin', expected_count=1)
+        self.assertEqual(
+            str(items[0].msg.get_payload(1).get_payload(0)['subject']),
+            'a test')
+        # The first payload contains the rejection reason.
+        payload = items[0].msg.get_payload(0).get_payload()
+        self.assertEqual(payload, '[No details are available]')
 
     def test_decorate_bulk(self):
         # Ensure that bulk postings get decorated with the footer.

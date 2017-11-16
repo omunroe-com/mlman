@@ -17,12 +17,10 @@
 
 """Application support for chain processing."""
 
-from mailman.chains.base import Chain, TerminalChainBase
 from mailman.config import config
 from mailman.interfaces.chain import IChain, LinkAction
-from mailman.utilities.modules import find_components
+from mailman.utilities.modules import add_components
 from public import public
-from zope.interface.verify import verifyObject
 
 
 @public
@@ -91,19 +89,5 @@ def process(mlist, msg, msgdata, start_chain='default-posting-chain'):
 @public
 def initialize():
     """Set up chains, both built-in and from the database."""
-    for chain_class in find_components('mailman.chains', IChain):
-        # FIXME 2010-12-28 barry: We need a generic way to disable automatic
-        # instantiation of discovered classes.  This is useful not just for
-        # chains, but also for rules, handlers, etc.  Ideally it should be
-        # part of find_components().  For now, hard code the ones we do not
-        # want to instantiate.
-        if chain_class in (Chain, TerminalChainBase):
-            continue
-        chain = chain_class()
-        verifyObject(IChain, chain)
-        assert chain.name not in config.chains, (
-            'Duplicate chain "{}" found in {} (previously: {}'.format(
-                chain.name, chain_class, config.chains[chain.name]))
-        config.chains[chain.name] = chain
+    add_components('mailman.chains', IChain, config.chains)
     # XXX Read chains from the database and initialize them.
-    pass

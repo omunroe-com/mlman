@@ -70,7 +70,7 @@ class ReopenableFileHandler(logging.Handler):
             if msg[-1] != '\n':
                 stream.write('\n')
             self.flush()
-        except:
+        except:                                  # noqa: E722 pragma: nocover
             self.handleError(record)
 
     def close(self):

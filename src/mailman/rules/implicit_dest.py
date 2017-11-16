@@ -88,4 +88,9 @@ class ImplicitDestination:
                         if re.match(escaped, recipient, re.IGNORECASE):
                             return False
         # Nothing matched.
+        msgdata['moderation_sender'] = msg.sender
+        with _.defer_translation():
+            # This will be translated at the point of use.
+            msgdata.setdefault('moderation_reasons', []).append(
+                _('Message has implicit destination'))
         return True
