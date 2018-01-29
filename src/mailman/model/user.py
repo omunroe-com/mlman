@@ -209,6 +209,7 @@ class User(Model):
             if getattr(user, name) and not getattr(self, name):
                 setattr(self, name, getattr(user, name))
         # Delete the other user.
+        store.commit()
         store.delete(user)
 
 
